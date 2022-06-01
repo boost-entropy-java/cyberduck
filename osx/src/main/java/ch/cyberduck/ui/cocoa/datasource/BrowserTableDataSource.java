@@ -199,7 +199,7 @@ public abstract class BrowserTableDataSource extends ProxyController implements 
         }
         if(identifier.equals(BrowserColumn.filename.name())) {
             if(StringUtils.isNotBlank(value.toString()) && !item.getName().equals(value.toString())) {
-                final Path renamed = new Path(item.getParent(), value.toString(), item.getType(), item.attributes());
+                final Path renamed = new Path(item.getParent(), value.toString(), item.getType(), new PathAttributes(item.attributes()).withVersionId(null));
                 new MoveController(controller).rename(item, renamed);
             }
         }
@@ -617,7 +617,12 @@ public abstract class BrowserTableDataSource extends ProxyController implements 
         }
         final PathPasteboard pasteboard = controller.getPasteboard();
         if(NSDraggingInfo.NSDragOperationDelete.intValue() == operation.intValue()) {
-            new DeleteController(controller).delete(pasteboard);
+            new DeleteController(controller, controller.getSession(), cache).delete(pasteboard, new DeleteController.Callback() {
+                @Override
+                public void deleted(final List<Path> deleted) {
+                    controller.reload(controller.workdir(), pasteboard, Collections.emptyList());
+                }
+            });
         }
         pasteboard.clear();
     }
