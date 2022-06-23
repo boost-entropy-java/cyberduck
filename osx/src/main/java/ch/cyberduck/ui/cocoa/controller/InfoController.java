@@ -25,7 +25,6 @@ import ch.cyberduck.binding.ToolbarWindowController;
 import ch.cyberduck.binding.application.*;
 import ch.cyberduck.binding.foundation.NSAttributedString;
 import ch.cyberduck.binding.foundation.NSIndexSet;
-import ch.cyberduck.binding.foundation.NSMutableAttributedString;
 import ch.cyberduck.binding.foundation.NSNotification;
 import ch.cyberduck.binding.foundation.NSNotificationCenter;
 import ch.cyberduck.binding.foundation.NSObject;
@@ -405,6 +404,7 @@ public class InfoController extends ToolbarWindowController {
             case s3:
                 // Set icon of cloud service provider
                 item.setLabel(session.getHost().getProtocol().getName());
+                item.setToolTip(session.getHost().getProtocol().getName());
                 item.setImage(IconCacheFactory.<NSImage>get().iconNamed(session.getHost().getProtocol().icon(), 32));
                 break;
         }
@@ -454,7 +454,7 @@ public class InfoController extends ToolbarWindowController {
     }
 
     @Override
-    public String getTitle(NSTabViewItem item) {
+    public String getWindowTitleForSelectedTab(final NSTabViewItem item) {
         return String.format("%s – %s", item.label(), this.getName());
     }
 
@@ -469,7 +469,7 @@ public class InfoController extends ToolbarWindowController {
         }
         this.files = files;
         this.initializePanel(this.getSelectedTab());
-        this.setTitle(this.getTitle(tabView.selectedTabViewItem()));
+        this.setWindowTitle(this.getWindowTitleForSelectedTab(tabView.selectedTabViewItem()));
     }
 
     @Override
@@ -491,7 +491,14 @@ public class InfoController extends ToolbarWindowController {
 
     private void addPanel(final Map<Label, NSView> views, final InfoToolbarItem item, final NSView panel) {
         if(preferences.getBoolean(String.format("info.%s.enable", item.name()))) {
-            views.put(new Label(item.name(), item.label(), item.image()), panel);
+            switch(item) {
+                case s3:
+                    views.put(new Label(item.name(), session.getHost().getProtocol().getName(), item.image()), panel);
+                    break;
+                default:
+                    views.put(new Label(item.name(), item.label(), item.image()), panel);
+                    break;
+            }
         }
     }
 
@@ -1938,7 +1945,10 @@ public class InfoController extends ToolbarWindowController {
                     }
                     if(session.getFeature(Redundancy.class) != null) {
                         for(final Path f : files) {
-                            selectedStorageClasses.add(session.getFeature(Redundancy.class).getClass(f));
+                            final String value = session.getFeature(Redundancy.class).getClass(f);
+                            if(StringUtils.isNotBlank(value)) {
+                                selectedStorageClasses.add(value);
+                            }
                         }
                     }
                     if(session.getFeature(Encryption.class) != null) {
@@ -1990,7 +2000,6 @@ public class InfoController extends ToolbarWindowController {
                         bucketVersioningButton.setState(versioning.isEnabled() ? NSCell.NSOnState : NSCell.NSOffState);
                         bucketMfaButton.setState(versioning.isMultifactor() ? NSCell.NSOnState : NSCell.NSOffState);
                     }
-
                     for(Encryption.Algorithm algorithm : managedEncryptionKeys) {
                         encryptionPopup.addItemWithTitle(LocaleFactory.localizedString(algorithm.getDescription(), "S3"));
                         encryptionPopup.lastItem().setRepresentedObject(algorithm.toString());
@@ -2009,7 +2018,6 @@ public class InfoController extends ToolbarWindowController {
                         encryptionPopup.itemAtIndex(encryptionPopup.indexOfItemWithRepresentedObject(algorithm.toString()))
                                 .setState(selectedEncryptionKeys.size() == 1 ? NSCell.NSOnState : NSCell.NSMixedState);
                     }
-
                     if(!selectedStorageClasses.isEmpty()) {
                         storageClassPopup.selectItemAtIndex(new NSInteger(-1));
                         if(-1 != storageClassPopup.indexOfItemWithTitle(LocaleFactory.localizedString("Unknown")).intValue()) {
@@ -2018,13 +2026,9 @@ public class InfoController extends ToolbarWindowController {
                     }
                     for(String storageClass : selectedStorageClasses) {
                         if(-1 != storageClassPopup.indexOfItemWithRepresentedObject(storageClass).intValue()) {
-                            storageClassPopup.selectItemAtIndex(storageClassPopup.indexOfItemWithRepresentedObject(storageClass));
-                        }
-                    }
-                    for(String storageClass : selectedStorageClasses) {
-                        if(-1 != storageClassPopup.indexOfItemWithRepresentedObject(storageClass).intValue()) {
-                            storageClassPopup.itemAtIndex(storageClassPopup.indexOfItemWithRepresentedObject(storageClass))
-                                    .setState(selectedStorageClasses.size() == 1 ? NSCell.NSOnState : NSCell.NSMixedState);
+                            final NSInteger index = storageClassPopup.indexOfItemWithRepresentedObject(storageClass);
+                            storageClassPopup.itemAtIndex(index).setState(selectedStorageClasses.size() == 1 ? NSCell.NSOnState : NSCell.NSMixedState);
+                            storageClassPopup.selectItemAtIndex(index);
                         }
                     }
                     if(lifecycle != null) {
@@ -2468,7 +2472,7 @@ public class InfoController extends ToolbarWindowController {
                     distributionEnableButton.setTitle(MessageFormat.format(LocaleFactory.localizedString("Enable {0} Distribution", "Status"),
                             distribution.getName()));
                     distributionEnableButton.setState(distribution.isEnabled() ? NSCell.NSOnState : NSCell.NSOffState);
-                    distributionStatusField.setAttributedStringValue(NSMutableAttributedString.create(distribution.getStatus(), TRUNCATE_MIDDLE_ATTRIBUTES));
+                    distributionStatusField.setAttributedStringValue(NSAttributedString.attributedStringWithAttributes(distribution.getStatus(), TRUNCATE_MIDDLE_ATTRIBUTES));
 
                     distributionLoggingButton.setState(distribution.isLogging() ? NSCell.NSOnState : NSCell.NSOffState);
                     final List<Path> containers = distribution.getContainers();
