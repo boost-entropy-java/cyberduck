@@ -143,6 +143,8 @@ public class InfoController extends ToolbarWindowController {
      */
     private final AttributedList<Path> versions = new AttributedList<>();
 
+    private final ReloadCallback reload;
+
     @Outlet
     private NSTextField filenameField;
     @Outlet
@@ -300,10 +302,11 @@ public class InfoController extends ToolbarWindowController {
     @Outlet
     private NSView panelVersions;
 
-    public InfoController(final Controller controller, final SessionPool session, final List<Path> files) {
+    public InfoController(final Controller controller, final SessionPool session, final List<Path> files, final ReloadCallback reload) {
         this.controller = controller;
         this.session = session;
         this.files = files;
+        this.reload = new DelegatingReloadCallback(new InternalVersionsReloadCallback(), reload);
     }
 
     @Override
@@ -1120,19 +1123,19 @@ public class InfoController extends ToolbarWindowController {
                     final String identifier = tableColumn.identifier();
                     if(identifier.equals(VersionsColumn.TIMESTAMP.name())) {
                         final String timestamp = UserDateFormatterFactory.get().getMediumFormat(versions.get(row.intValue()).attributes().getModificationDate());
-                        return NSAttributedString.attributedString(StringUtils.isNotEmpty(timestamp) ? timestamp : StringUtils.EMPTY);
+                        return NSAttributedString.attributedStringWithAttributes(StringUtils.isNotEmpty(timestamp) ? timestamp : StringUtils.EMPTY, TRUNCATE_MIDDLE_ATTRIBUTES);
                     }
                     if(identifier.equals(VersionsColumn.CHECKSUM.name())) {
                         final Checksum checksum = versions.get(row.intValue()).attributes().getChecksum();
-                        return NSAttributedString.attributedString(!Checksum.NONE.equals(checksum) ? checksum.hash : LocaleFactory.localizedString("None"));
+                        return NSAttributedString.attributedStringWithAttributes(!Checksum.NONE.equals(checksum) ? checksum.hash : LocaleFactory.localizedString("None"), TRUNCATE_MIDDLE_ATTRIBUTES);
                     }
                     if(identifier.equals(VersionsColumn.SIZE.name())) {
                         final long size = versions.get(row.intValue()).attributes().getSize();
-                        return NSAttributedString.attributedString(SizeFormatterFactory.get().format(size));
+                        return NSAttributedString.attributedStringWithAttributes(SizeFormatterFactory.get().format(size), TRUNCATE_MIDDLE_ATTRIBUTES);
                     }
                     if(identifier.equals(VersionsColumn.OWNER.name())) {
                         final String owner = versions.get(row.intValue()).attributes().getOwner();
-                        return NSAttributedString.attributedString(StringUtils.isBlank(owner) ? LocaleFactory.localizedString("Unknown") : owner);
+                        return NSAttributedString.attributedStringWithAttributes(StringUtils.isBlank(owner) ? LocaleFactory.localizedString("Unknown") : owner, TRUNCATE_MIDDLE_ATTRIBUTES);
                     }
                 }
                 return null;
@@ -1187,12 +1190,16 @@ public class InfoController extends ToolbarWindowController {
     public void setVersionsRevertButton(final NSButton b) {
         this.versionsRevertButton = b;
         this.versionsRevertButton.setTarget(this.id());
+        if(!Factory.Platform.osversion.matches("10\\.(12|13|14|15).*")) {
+            // Available in 10.16 or later
+            this.versionsRevertButton.setImage(IconCacheFactory.<NSImage>get().iconNamed("clock.arrow.circlepath"));
+        }
         this.versionsRevertButton.setAction(Foundation.selector("versionsRevertButtonClicked:"));
     }
 
     @Action
     public void versionsRevertButtonClicked(final ID sender) {
-        this.versionsRevertButtonClicked(new VersionsReloadCallback());
+        this.versionsRevertButtonClicked(reload);
     }
 
     protected void versionsRevertButtonClicked(final ReloadCallback callback) {
@@ -1210,7 +1217,7 @@ public class InfoController extends ToolbarWindowController {
 
     @Action
     public void versionsDeleteButtonClicked(final ID sender) {
-        this.versionsDeleteButtonClicked(new VersionsReloadCallback());
+        this.versionsDeleteButtonClicked(reload);
     }
 
     protected void versionsDeleteButtonClicked(final ReloadCallback callback) {
@@ -2697,7 +2704,7 @@ public class InfoController extends ToolbarWindowController {
         }
     }
 
-    public class VersionsReloadCallback implements ReloadCallback {
+    public class InternalVersionsReloadCallback implements ReloadCallback {
         @Override
         public void cancel() {
             toggleVersionsSettings(true);
