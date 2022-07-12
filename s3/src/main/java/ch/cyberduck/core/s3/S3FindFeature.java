@@ -28,9 +28,12 @@ import ch.cyberduck.core.exception.NotfoundException;
 import ch.cyberduck.core.exception.RetriableAccessDeniedException;
 import ch.cyberduck.core.features.Find;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jets3t.service.ServiceException;
 
 public class S3FindFeature implements Find {
+    private static final Logger log = LogManager.getLogger(S3FindFeature.class);
 
     private final PathContainerService containerService;
     private final S3Session session;
@@ -52,6 +55,9 @@ public class S3FindFeature implements Find {
         try {
             if(containerService.isContainer(file)) {
                 try {
+                    if(log.isDebugEnabled()) {
+                        log.debug(String.format("Test if bucket %s is accessible", file));
+                    }
                     return session.getClient().isBucketAccessible(containerService.getContainer(file).getName());
                 }
                 catch(ServiceException e) {
@@ -63,9 +69,12 @@ public class S3FindFeature implements Find {
                 return true;
             }
             else {
+                if(log.isDebugEnabled()) {
+                    log.debug(String.format("Search for common prefix %s", file));
+                }
                 // Check for common prefix
                 try {
-                    new S3ObjectListService(session, acl).list(file, new CancellingListProgressListener(), containerService.getKey(file), 1);
+                    new S3ObjectListService(session, acl).list(file, new CancellingListProgressListener(), String.valueOf(Path.DELIMITER), 1);
                     return true;
                 }
                 catch(ListCanceledException l) {
