@@ -38,7 +38,7 @@ public abstract class AbstractBackgroundAction<T> implements BackgroundAction<T>
     protected final Set<BackgroundActionListener> listeners = new CopyOnWriteArraySet<>();
 
     @Override
-    public void init() {
+    public void init() throws BackgroundException {
         //
     }
 
