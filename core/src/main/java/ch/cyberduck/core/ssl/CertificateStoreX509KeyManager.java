@@ -80,7 +80,7 @@ public class CertificateStoreX509KeyManager extends AbstractX509KeyManager {
                 if(log.isInfoEnabled()) {
                     log.info(String.format("Load default store of type %s", type));
                 }
-                if(null == type) {
+                if(StringUtils.isBlank(type)) {
                     type = KeyStore.getDefaultType();
                 }
                 final String provider = preferences.getProperty("connection.ssl.keystore.provider");
@@ -207,7 +207,6 @@ public class CertificateStoreX509KeyManager extends AbstractX509KeyManager {
     public String chooseClientAlias(final String[] keyTypes, final Principal[] issuers, final Socket socket) {
         try {
             final X509Certificate selected;
-            final String hostname = socket.getInetAddress().getHostName();
             try {
                 final String alias = bookmark.getCredentials().getCertificate();
                 if(StringUtils.isNotBlank(alias)) {
