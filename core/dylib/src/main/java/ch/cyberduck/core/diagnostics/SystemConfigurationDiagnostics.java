@@ -1,4 +1,4 @@
-package ch.cyberduck.core.proxy;
+package ch.cyberduck.core.diagnostics;
 
 /*
  * Copyright (c) 2002-2009 David Kocher. All rights reserved.
@@ -19,19 +19,16 @@ package ch.cyberduck.core.proxy;
  * dkocher@cyberduck.ch
  */
 
-public interface ProxyFinder {
-    /**
-     * Find proxy for a given target host
-     *
-     * @param target Target host containing scheme, e.g. https://mytarget.com
-     * @return Proxy to use
-     */
-    Proxy find(String target);
+import ch.cyberduck.core.Host;
 
-    interface Configuration {
-        /**
-         * Allow user to configure system proxy settings
-         */
-        void configure();
+public final class SystemConfigurationDiagnostics implements Reachability.Diagnostics {
+
+    /**
+     * Opens the network configuration assistant for the URL denoting this host
+     */
+    @Override
+    public void diagnose(final Host bookmark) {
+        final CDReachabilityMonitor monitor = CDReachabilityMonitor.monitorForUrl(SystemConfigurationReachability.toURL(bookmark));
+        monitor.diagnoseInteractively();
     }
 }
