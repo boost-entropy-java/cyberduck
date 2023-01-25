@@ -1197,7 +1197,7 @@ namespace Ch.Cyberduck.Ui.Controller
         private void PopulateDefaultS3BucketLocations()
         {
             IList<KeyValuePair<string, string>> defaultBucketLocations = new List<KeyValuePair<string, string>>();
-            Set locations = new S3Protocol().getRegions();
+            Set locations = ProtocolFactory.get().forType(Protocol.Type.s3).getRegions();
             Iterator iter = locations.iterator();
             while (iter.hasNext())
             {
@@ -1211,7 +1211,7 @@ namespace Ch.Cyberduck.Ui.Controller
         private void PopulateDefaultGoogleBucketLocations()
         {
             IList<KeyValuePair<string, string>> defaultBucketLocations = new List<KeyValuePair<string, string>>();
-            Set locations = new GoogleStorageProtocol().getRegions();
+            Set locations = ProtocolFactory.get().forType(Protocol.Type.googlestorage).getRegions();
             Iterator iter = locations.iterator();
             while (iter.hasNext())
             {
@@ -1225,7 +1225,7 @@ namespace Ch.Cyberduck.Ui.Controller
         private void PopulateDefaultS3StorageClasses()
         {
             IList<KeyValuePair<string, string>> storageClasses = new List<KeyValuePair<string, string>>();
-            Iterator iter = PreferencesFactory.get().getList("s3.storage.class.options").iterator();
+            Iterator iter = PreferencesReader.toList(ProtocolFactory.get().forType(Protocol.Type.s3).getProperties().get("s3.storage.class.options") as string).iterator();
             while (iter.hasNext())
             {
                 string s = (string) iter.next();
