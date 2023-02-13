@@ -1096,7 +1096,7 @@ namespace Ch.Cyberduck.Ui.Controller
                 IDictionary<Path, Path> files = new Dictionary<Path, Path>();
                 foreach (Path next in dropargs.SourceModels)
                 {
-                    Path renamed = new Path(destination, next.getName(), next.getType(), new PathAttributes(next.attributes()).withVersionId(null));
+                    Path renamed = new Path(destination, next.getName(), EnumSet.of(next.isDirectory() ? Path.Type.directory : Path.Type.file));
                     files.Add(next, renamed);
                 }
                 if (files.Count > 0)
@@ -1108,7 +1108,7 @@ namespace Ch.Cyberduck.Ui.Controller
                             // Find source browser
                             if (controller.View.Browser.Equals(dropargs.SourceListView))
                             {
-                                if (controller.Session.Equals(Session))
+                                if (new AbstractHostCollection.ProfilePredicate(controller.Session.getHost()).test(Session.getHost()))
                                 {
                                     CopyPaths(files);
                                 }
