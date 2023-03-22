@@ -287,7 +287,7 @@
             <dependency>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-annotations</artifactId>
-                <version>1.6.9</version>
+                <version>1.6.10</version>
             </dependency>
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
@@ -352,7 +352,7 @@
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.12.409</version>
+                <version>1.12.431</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
