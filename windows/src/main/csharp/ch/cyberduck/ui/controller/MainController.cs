@@ -68,6 +68,7 @@ using StructureMap;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reactive.Concurrency;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.ServiceModel;
@@ -76,6 +77,7 @@ using System.Threading;
 using System.Web;
 using System.Windows.Forms;
 using System.Windows.Shell;
+using System.Windows.Threading;
 using Windows.Services.Store;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Shell;
@@ -784,51 +786,48 @@ namespace Ch.Cyberduck.Ui.Controller
             });
         }
 
-        private void InitializeBookmarks(CountdownEvent bookmarksSemaphore)
+        private void InitializeSessionsBookmarks(CountdownEvent bookmarksSemaphore)
         {
             // Load all bookmarks in background
             _controller.Background(() =>
             {
+                HistoryCollection.defaultCollection().load();
+                if (PreferencesFactory.get().getBoolean("browser.serialize"))
+                {
+                    _sessions.load();
+                }
                 AbstractHostCollection c = BookmarkCollection.defaultCollection();
                 c.load();
                 bookmarksSemaphore.Signal();
             }, () =>
             {
-                if (PreferencesFactory.get().getBoolean("browser.open.untitled"))
+                foreach (Host host in _sessions)
                 {
-                    if (PreferencesFactory.get().getProperty("browser.open.bookmark.default") != null)
+                    Host h = host;
+                    _bc.Invoke(delegate
                     {
-                        _bc.Invoke(() =>
+                        BrowserController bc = NewBrowser();
+                        bc.Mount(h);
+                    });
+                }
+
+                if (_sessions.isEmpty())
+                {
+                    if (PreferencesFactory.get().getBoolean("browser.open.untitled"))
+                    {
+                        if (PreferencesFactory.get().getProperty("browser.open.bookmark.default") != null)
                         {
-                            BrowserController bc = NewBrowser();
-                            OpenDefaultBookmark(bc);
-                        });
+                            _bc.Invoke(() =>
+                            {
+                                BrowserController bc = NewBrowser();
+                                OpenDefaultBookmark(bc);
+                            });
+                        }
                     }
                 }
+                _sessions.clear();
             });
-        }
-
-        private void InitializeSessions()
-        {
-            _controller.Background(delegate { HistoryCollection.defaultCollection().load(); }, delegate { });
-
             HistoryCollection.defaultCollection().addListener(this);
-            if (PreferencesFactory.get().getBoolean("browser.serialize"))
-            {
-                _controller.Background(delegate { _sessions.load(); }, delegate
-                {
-                    foreach (Host host in _sessions)
-                    {
-                        Host h = host;
-                        _bc.Invoke(delegate
-                        {
-                            BrowserController bc = NewBrowser();
-                            bc.Mount(h);
-                        });
-                    }
-                    _sessions.clear();
-                });
-            }
         }
 
         private void InitializeTransfers()
@@ -899,12 +898,11 @@ namespace Ch.Cyberduck.Ui.Controller
             }
 
             InitializeTransfers();
-            InitializeSessions();
 
             // User bookmarks and thirdparty applications
             CountdownEvent bookmarksSemaphore = new CountdownEvent(1);
             CountdownEvent thirdpartySemaphore = new CountdownEvent(1);
-            InitializeBookmarks(bookmarksSemaphore);
+            InitializeSessionsBookmarks(bookmarksSemaphore);
             InitializeBonjour();
             InitializeProtocolHandler();
             ImportBookmarks(bookmarksSemaphore, thirdpartySemaphore);
