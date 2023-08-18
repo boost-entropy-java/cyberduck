@@ -23,6 +23,7 @@ import ch.cyberduck.core.exception.BackgroundException;
 import ch.cyberduck.core.exception.ConnectionCanceledException;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 @Optional
@@ -65,6 +66,26 @@ public interface Share<Download, Upload> {
         }
 
         @Override
+        public boolean equals(final Object o) {
+            if(this == o) {
+                return true;
+            }
+            if(o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            final Sharee sharee = (Sharee) o;
+            if(!Objects.equals(identifier, sharee.identifier)) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return identifier != null ? identifier.hashCode() : 0;
+        }
+
+        @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("Sharee{");
             sb.append("identifier='").append(identifier).append('\'');
@@ -78,5 +99,12 @@ public interface Share<Download, Upload> {
 
     interface ShareeCallback {
         Sharee prompt(Type type, Set<Sharee> sharees) throws ConnectionCanceledException;
+
+        ShareeCallback disabled = new ShareeCallback() {
+            @Override
+            public Sharee prompt(final Type type, final Set<Sharee> sharees) throws ConnectionCanceledException {
+                throw new ConnectionCanceledException();
+            }
+        };
     }
 }
