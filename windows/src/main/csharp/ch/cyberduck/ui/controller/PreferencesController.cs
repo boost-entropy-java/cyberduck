@@ -1204,7 +1204,8 @@ namespace Ch.Cyberduck.Ui.Controller
         private void PopulateDefaultS3BucketLocations()
         {
             IList<KeyValuePair<string, string>> defaultBucketLocations = new List<KeyValuePair<string, string>>();
-            Set locations = ProtocolFactory.get().forType(Protocol.Type.s3).getRegions();
+            ProtocolFactory factory = ProtocolFactory.get();
+            Set locations = factory.forType(factory.find(ProtocolFactory.BUNDLED_PROFILE_PREDICATE), Protocol.Type.s3).getRegions();
             Iterator iter = locations.iterator();
             while (iter.hasNext())
             {
@@ -1218,7 +1219,8 @@ namespace Ch.Cyberduck.Ui.Controller
         private void PopulateDefaultGoogleBucketLocations()
         {
             IList<KeyValuePair<string, string>> defaultBucketLocations = new List<KeyValuePair<string, string>>();
-            Set locations = ProtocolFactory.get().forType(Protocol.Type.googlestorage).getRegions();
+            ProtocolFactory factory = ProtocolFactory.get();
+            Set locations = factory.forType(factory.find(ProtocolFactory.BUNDLED_PROFILE_PREDICATE), Protocol.Type.googlestorage).getRegions();
             Iterator iter = locations.iterator();
             while (iter.hasNext())
             {
@@ -1232,7 +1234,8 @@ namespace Ch.Cyberduck.Ui.Controller
         private void PopulateDefaultS3StorageClasses()
         {
             IList<KeyValuePair<string, string>> storageClasses = new List<KeyValuePair<string, string>>();
-            Iterator iter = PreferencesReader.toList(ProtocolFactory.get().forType(Protocol.Type.s3).getProperties().get("s3.storage.class.options") as string).iterator();
+            ProtocolFactory factory = ProtocolFactory.get();
+            Iterator iter = PreferencesReader.toList(factory.forType(factory.find(ProtocolFactory.BUNDLED_PROFILE_PREDICATE), Protocol.Type.s3).getProperties().get("s3.storage.class.options") as string).iterator();
             while (iter.hasNext())
             {
                 string s = (string) iter.next();
@@ -1319,7 +1322,7 @@ namespace Ch.Cyberduck.Ui.Controller
             List<KeyValueIconTriple<Protocol, string>> protocols = new List<KeyValueIconTriple<Protocol, string>>();
             ProtocolFactory p = ProtocolFactory.get();
             foreach (Protocol protocol in p.find(new DefaultProtocolPredicate(
-                EnumSet.of(Protocol.Type.ftp, Protocol.Type.sftp, Protocol.Type.dav))).toArray(new Protocol[] { }))
+                EnumSet.of(Protocol.Type.ftp, Protocol.Type.sftp, Protocol.Type.dav, Protocol.Type.smb))).toArray(new Protocol[] { }))
             {
                 protocols.Add(new KeyValueIconTriple<Protocol, string>(protocol, protocol.getDescription(),
                     protocol.disk()));
