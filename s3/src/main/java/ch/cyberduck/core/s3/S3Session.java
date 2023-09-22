@@ -191,13 +191,16 @@ public class S3Session extends HttpSession<RequestEntityRestStorageService> {
         if(host.getProtocol().isOAuthConfigurable()) {
             final OAuth2RequestInterceptor oauth = new OAuth2RequestInterceptor(builder.build(ProxyFactory.get()
                     .find(host.getProtocol().getOAuthAuthorizationUrl()), this, prompt).build(), host, prompt)
-                    .withRedirectUri(host.getProtocol().getOAuthRedirectUrl())
-                    .withFlowType(OAuth2AuthorizationService.FlowType.valueOf(host.getProtocol().getAuthorization()));
+                    .withRedirectUri(host.getProtocol().getOAuthRedirectUrl());
+            if(host.getProtocol().getAuthorization() != null) {
+                oauth.withFlowType(OAuth2AuthorizationService.FlowType.valueOf(host.getProtocol().getAuthorization()));
+            }
             configuration.addInterceptorLast(oauth);
-            final STSAssumeRoleCredentialsRequestInterceptor sts = new STSAssumeRoleCredentialsRequestInterceptor(oauth, this, trust, key, prompt, cancel);
-            configuration.addInterceptorLast(sts);
-            configuration.setServiceUnavailableRetryStrategy(new S3AuthenticationResponseInterceptor(this, sts));
-            authentication = sts;
+            final STSAssumeRoleCredentialsRequestInterceptor interceptor
+                    = new STSAssumeRoleCredentialsRequestInterceptor(oauth, this, trust, key, prompt);
+            configuration.addInterceptorLast(interceptor);
+            configuration.setServiceUnavailableRetryStrategy(new S3AuthenticationResponseInterceptor(this, interceptor));
+            authentication = interceptor;
         }
         else {
             if(S3Session.isAwsHostname(host.getHostname())) {
