@@ -57,7 +57,7 @@ public class TouchWorker extends Worker<Path> {
         }
         final TransferStatus status = new TransferStatus()
                 .withLength(0L)
-                .withTimestamp(System.currentTimeMillis())
+                .withModified(System.currentTimeMillis())
                 .hidden(!SearchFilterFactory.HIDDEN_FILTER.accept(file))
                 .exists(false)
                 .withLength(0L)
@@ -71,7 +71,7 @@ public class TouchWorker extends Worker<Path> {
         if(redundancy != null) {
             status.setStorageClass(redundancy.getDefault());
         }
-        status.setTimestamp(System.currentTimeMillis());
+        status.setModified(System.currentTimeMillis());
         if(PreferencesFactory.get().getBoolean("touch.permissions.change")) {
             final UnixPermission permission = session.getFeature(UnixPermission.class);
             if(permission != null) {

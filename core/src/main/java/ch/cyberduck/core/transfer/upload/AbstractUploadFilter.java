@@ -65,8 +65,7 @@ import java.util.EnumSet;
 public abstract class AbstractUploadFilter implements TransferPathFilter {
     private static final Logger log = LogManager.getLogger(AbstractUploadFilter.class);
 
-    private final PreferencesReader preferences
-            ;
+    private final PreferencesReader preferences;
     private final Session<?> session;
     private final SymlinkResolver<Local> symlinkResolver;
     private final Filter<Path> hidden = SearchFilterFactory.HIDDEN_FILTER;
@@ -220,12 +219,11 @@ public abstract class AbstractUploadFilter implements TransferPathFilter {
         if(options.timestamp) {
             final Timestamp feature = session.getFeature(Timestamp.class);
             if(feature != null) {
-                // Read timestamps from local file
-                status.setTimestamp(feature.getDefault(local));
-            }
-            else {
                 if(1L != local.attributes().getModificationDate()) {
-                    status.setTimestamp(local.attributes().getModificationDate());
+                    status.setModified(local.attributes().getModificationDate());
+                }
+                if(1L != local.attributes().getCreationDate()) {
+                    status.setCreated(local.attributes().getCreationDate());
                 }
             }
         }
@@ -311,11 +309,13 @@ public abstract class AbstractUploadFilter implements TransferPathFilter {
         if(status.isExists() && !status.isAppend()) {
             if(options.versioning) {
                 final Versioning feature = session.getFeature(Versioning.class);
-                if(feature.save(file)) {
-                    if(log.isDebugEnabled()) {
-                        log.debug(String.format("Clear exist flag for file %s", file));
+                if(feature != null && feature.getConfiguration(file).isEnabled()) {
+                    if(feature.save(file)) {
+                        if(log.isDebugEnabled()) {
+                            log.debug(String.format("Clear exist flag for file %s", file));
+                        }
+                        status.exists(false).getDisplayname().exists(false);
                     }
-                    status.exists(false).getDisplayname().exists(false);
                 }
             }
         }
@@ -363,13 +363,13 @@ public abstract class AbstractUploadFilter implements TransferPathFilter {
                     }
                 }
             }
-            if(status.getTimestamp() != null) {
+            if(status.getModified() != null) {
                 if(!session.getFeature(Write.class).timestamp()) {
                     final Timestamp feature = session.getFeature(Timestamp.class);
                     if(feature != null) {
                         try {
                             listener.message(MessageFormat.format(LocaleFactory.localizedString("Changing timestamp of {0} to {1}", "Status"),
-                                    file.getName(), UserDateFormatterFactory.get().getShortFormat(status.getTimestamp())));
+                                    file.getName(), UserDateFormatterFactory.get().getShortFormat(status.getModified())));
                             feature.setTimestamp(file, status);
                         }
                         catch(BackgroundException e) {

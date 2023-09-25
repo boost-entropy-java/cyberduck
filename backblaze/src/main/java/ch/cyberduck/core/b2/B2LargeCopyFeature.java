@@ -49,6 +49,7 @@ import synapticloop.b2.response.B2StartLargeFileResponse;
 import synapticloop.b2.response.B2UploadPartResponse;
 
 import static ch.cyberduck.core.b2.B2LargeUploadService.X_BZ_INFO_LARGE_FILE_SHA1;
+import static ch.cyberduck.core.b2.B2MetadataFeature.X_BZ_INFO_SRC_CREATION_DATE_MILLIS;
 import static ch.cyberduck.core.b2.B2MetadataFeature.X_BZ_INFO_SRC_LAST_MODIFIED_MILLIS;
 
 public class B2LargeCopyFeature implements Copy {
@@ -80,8 +81,11 @@ public class B2LargeCopyFeature implements Copy {
         final ThreadPool pool = ThreadPoolFactory.get("largeupload", concurrency);
         try {
             final Map<String, String> fileinfo = new HashMap<>(status.getMetadata());
-            if(null != status.getTimestamp()) {
-                fileinfo.put(X_BZ_INFO_SRC_LAST_MODIFIED_MILLIS, String.valueOf(status.getTimestamp()));
+            if(null != status.getModified()) {
+                fileinfo.put(X_BZ_INFO_SRC_LAST_MODIFIED_MILLIS, String.valueOf(status.getModified()));
+            }
+            if(null != status.getCreated()) {
+                fileinfo.put(X_BZ_INFO_SRC_CREATION_DATE_MILLIS, String.valueOf(status.getCreated()));
             }
             final Checksum checksum = status.getChecksum();
             if(Checksum.NONE != checksum) {

@@ -45,12 +45,12 @@ public class GoogleStorageTimestampFeatureTest extends AbstractGoogleStorageTest
     public void testFindTimesteamp() throws Exception {
         final Path bucket = new Path("cyberduck-test-eu", EnumSet.of(Path.Type.directory, Path.Type.volume));
         final Path test = new GoogleStorageTouchFeature(session).touch(new Path(bucket,
-                new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file)), new TransferStatus().withTimestamp(1530305150672L));
+                new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file)), new TransferStatus().withModified(1530305150672L));
         assertEquals(1530305150672L, new GoogleStorageAttributesFinderFeature(session).find(test).getModificationDate());
         final TransferStatus status = new TransferStatus();
         final byte[] content = RandomUtils.nextBytes(1033);
         status.setLength(content.length);
-        status.setTimestamp(1530305150673L);
+        status.setModified(1530305150673L);
         final HttpResponseOutputStream<StorageObject> out = new GoogleStorageWriteFeature(session).write(test, status, new DisabledConnectionCallback());
         new StreamCopier(new TransferStatus(), new TransferStatus()).transfer(new ByteArrayInputStream(content), out);
         out.close();
@@ -61,14 +61,14 @@ public class GoogleStorageTimestampFeatureTest extends AbstractGoogleStorageTest
         assertEquals(1530305150673L, response.getModificationDate());
         final GoogleStorageTimestampFeature feature = new GoogleStorageTimestampFeature(session);
         // Rewrite object with timestamp earlier than already set
-        final TransferStatus rewriteStatus = new TransferStatus().withTimestamp(1530305150672L);
+        final TransferStatus rewriteStatus = new TransferStatus().withModified(1530305150672L);
         feature.setTimestamp(test, rewriteStatus);
         final PathAttributes attrAfterRewrite = new GoogleStorageAttributesFinderFeature(session).find(test);
         assertEquals(rewriteStatus.getResponse(), attrAfterRewrite);
         assertEquals(1530305150672L, attrAfterRewrite.getModificationDate());
         assertNotEquals(response.getETag(), attrAfterRewrite.getETag());
         assertNotEquals(response.getVersionId(), attrAfterRewrite.getVersionId());
-        final TransferStatus patchStatus = new TransferStatus().withTimestamp(1630305150672L);
+        final TransferStatus patchStatus = new TransferStatus().withModified(1630305150672L);
         feature.setTimestamp(test, patchStatus);
         assertEquals(1630305150672L, new GoogleStorageAttributesFinderFeature(session).find(test).getModificationDate());
         final PathAttributes attrAfterPatch = new GoogleStorageAttributesFinderFeature(session).find(test);

@@ -140,7 +140,8 @@ public abstract class AbstractCopyFilter implements TransferPathFilter {
             }
         }
         if(options.timestamp) {
-            status.setTimestamp(attributes.getModificationDate());
+            status.setModified(attributes.getModificationDate());
+            status.setCreated(attributes.getCreationDate());
         }
         if(options.metadata) {
             final Headers sourceFeature = sourceSession.getFeature(Headers.class);
@@ -250,11 +251,11 @@ public abstract class AbstractCopyFilter implements TransferPathFilter {
                     }
                 }
             }
-            if(status.getTimestamp() != null) {
+            if(status.getModified() != null) {
                 final Timestamp timestamp = targetSession.getFeature(Timestamp.class);
                 if(timestamp != null) {
                     listener.message(MessageFormat.format(LocaleFactory.localizedString("Changing timestamp of {0} to {1}", "Status"),
-                        target.getName(), UserDateFormatterFactory.get().getShortFormat(status.getTimestamp())));
+                            target.getName(), UserDateFormatterFactory.get().getShortFormat(status.getModified())));
                     try {
                         timestamp.setTimestamp(target, status);
                     }

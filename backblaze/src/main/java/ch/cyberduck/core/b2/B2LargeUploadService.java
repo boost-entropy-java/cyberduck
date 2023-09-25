@@ -55,6 +55,7 @@ import synapticloop.b2.response.B2FinishLargeFileResponse;
 import synapticloop.b2.response.B2UploadPartResponse;
 import synapticloop.b2.response.BaseB2Response;
 
+import static ch.cyberduck.core.b2.B2MetadataFeature.X_BZ_INFO_SRC_CREATION_DATE_MILLIS;
 import static ch.cyberduck.core.b2.B2MetadataFeature.X_BZ_INFO_SRC_LAST_MODIFIED_MILLIS;
 
 public class B2LargeUploadService extends HttpUploadFeature<BaseB2Response, MessageDigest> {
@@ -124,8 +125,11 @@ public class B2LargeUploadService extends HttpUploadFeature<BaseB2Response, Mess
                         break;
                 }
             }
-            if(null != status.getTimestamp()) {
-                fileinfo.put(X_BZ_INFO_SRC_LAST_MODIFIED_MILLIS, String.valueOf(status.getTimestamp()));
+            if(null != status.getModified()) {
+                fileinfo.put(X_BZ_INFO_SRC_LAST_MODIFIED_MILLIS, String.valueOf(status.getModified()));
+            }
+            if(null != status.getCreated()) {
+                fileinfo.put(X_BZ_INFO_SRC_CREATION_DATE_MILLIS, String.valueOf(status.getCreated()));
             }
             final String fileId;
             if(status.isAppend()) {
