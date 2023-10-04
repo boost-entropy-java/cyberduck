@@ -179,12 +179,12 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
-                <version>2.11.1</version>
+                <version>2.12.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.13.0</version>
+                <version>2.14.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-collections</groupId>
@@ -664,12 +664,12 @@
                 <plugin>
                     <groupId>io.swagger</groupId>
                     <artifactId>swagger-codegen-maven-plugin</artifactId>
-                    <version>2.4.32</version>
+                    <version>2.4.33</version>
                 </plugin>
                 <plugin>
                     <groupId>io.swagger.codegen.v3</groupId>
                     <artifactId>swagger-codegen-maven-plugin</artifactId>
-                    <version>3.0.46</version>
+                    <version>3.0.47</version>
                     <configuration>
                         <configOptions>
                             <sourceFolder>src/main/java</sourceFolder>
