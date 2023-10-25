@@ -83,7 +83,7 @@
         <jersey-version>2.38</jersey-version>
         <jackson-version>2.14.2</jackson-version>
         <slf4j-version>1.7.36</slf4j-version>
-        <log4j-version>2.21.0</log4j-version>
+        <log4j-version>2.21.1</log4j-version>
         <bouncycastle-version>1.76</bouncycastle-version>
         <httpclient-version>4.5.14</httpclient-version>
         <google-http-client.version>1.42.3</google-http-client.version>
@@ -526,7 +526,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>3.2.1</version>
                     <configuration>
                         <argLine>@{argLine} --add-opens=java.base/sun.security.ssl=ALL-UNNAMED
                             --add-opens=java.base/sun.security.util=ALL-UNNAMED
@@ -547,14 +547,14 @@
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit47</artifactId>
-                            <version>3.1.2</version>
+                            <version>3.2.1</version>
                         </dependency>
                     </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>3.2.1</version>
                     <configuration>
                         <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                         <encoding>UTF-8</encoding>
@@ -577,7 +577,7 @@
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit47</artifactId>
-                            <version>3.1.2</version>
+                            <version>3.2.1</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -589,7 +589,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.6.1</version>
                     <executions>
                         <execution>
                             <id>copy-dependencies-dylib-target</id>
