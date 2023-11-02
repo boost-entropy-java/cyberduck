@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.text.MessageFormat;
 import java.util.EnumSet;
 
 public class SDSDirectoryFeature implements Directory<VersionId> {
@@ -108,15 +109,15 @@ public class SDSDirectoryFeature implements Directory<VersionId> {
         if(workdir.isRoot()) {
             if(!new HostPreferences(session.getHost()).getBoolean("sds.create.dataroom.enable")) {
                 log.warn(String.format("Disallow creating new top level data room %s", filename));
-                throw new AccessDeniedException(LocaleFactory.localizedString("Unsupported", "Error")).withFile(workdir);
+                throw new AccessDeniedException(MessageFormat.format(LocaleFactory.localizedString("Cannot create folder {0}", "Error"), filename)).withFile(workdir);
             }
         }
         if(!SDSTouchFeature.validate(filename)) {
-            throw new InvalidFilenameException();
+            throw new InvalidFilenameException(MessageFormat.format(LocaleFactory.localizedString("Cannot create folder {0}", "Error"), filename));
         }
         final SDSPermissionsFeature permissions = new SDSPermissionsFeature(session, nodeid);
         if(!permissions.containsRole(workdir, SDSPermissionsFeature.CREATE_ROLE)) {
-            throw new AccessDeniedException(LocaleFactory.localizedString("Unsupported", "Error")).withFile(workdir);
+            throw new AccessDeniedException(MessageFormat.format(LocaleFactory.localizedString("Cannot create folder {0}", "Error"), filename)).withFile(workdir);
         }
     }
 

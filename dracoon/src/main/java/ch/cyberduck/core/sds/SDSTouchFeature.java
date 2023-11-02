@@ -31,6 +31,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.text.MessageFormat;
+
 public class SDSTouchFeature extends DefaultTouchFeature<Node> {
     private static final Logger log = LogManager.getLogger(SDSTouchFeature.class);
 
@@ -60,21 +62,21 @@ public class SDSTouchFeature extends DefaultTouchFeature<Node> {
     @Override
     public void preflight(final Path workdir, final String filename) throws BackgroundException {
         if(workdir.isRoot()) {
-            throw new AccessDeniedException(LocaleFactory.localizedString("Unsupported", "Error")).withFile(workdir);
+            throw new AccessDeniedException(MessageFormat.format(LocaleFactory.localizedString("Cannot create {0}", "Error"), filename)).withFile(workdir);
         }
         if(!validate(filename)) {
-            throw new InvalidFilenameException();
+            throw new InvalidFilenameException(MessageFormat.format(LocaleFactory.localizedString("Cannot create {0}", "Error"), filename));
         }
         final SDSPermissionsFeature permissions = new SDSPermissionsFeature(session, nodeid);
         if(!permissions.containsRole(workdir, SDSPermissionsFeature.CREATE_ROLE)
                 // For existing files the delete role is also required to overwrite
                 || !permissions.containsRole(workdir, SDSPermissionsFeature.DELETE_ROLE)) {
-            throw new AccessDeniedException(LocaleFactory.localizedString("Unsupported", "Error")).withFile(workdir);
+            throw new AccessDeniedException(MessageFormat.format(LocaleFactory.localizedString("Cannot create {0}", "Error"), filename)).withFile(workdir);
         }
         if(workdir.attributes().getQuota() != -1) {
             if(workdir.attributes().getQuota() <= workdir.attributes().getSize() + new HostPreferences(session.getHost()).getInteger("sds.upload.multipart.chunksize")) {
                 log.warn(String.format("Quota %d exceeded with %d in %s", workdir.attributes().getQuota(), workdir.attributes().getSize(), workdir));
-                throw new QuotaException(LocaleFactory.localizedString("Unsupported", "Error")).withFile(workdir);
+                throw new QuotaException(MessageFormat.format(LocaleFactory.localizedString("Cannot create {0}", "Error"), filename)).withFile(workdir);
             }
         }
     }
