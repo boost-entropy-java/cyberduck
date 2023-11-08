@@ -508,7 +508,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.6.2</version>
                     <configuration>
                         <source>8</source>
                         <doclint>none</doclint>
@@ -526,7 +526,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.2.2</version>
                     <configuration>
                         <argLine>@{argLine} --add-opens=java.base/sun.security.ssl=ALL-UNNAMED
                             --add-opens=java.base/sun.security.util=ALL-UNNAMED
@@ -547,14 +547,14 @@
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit47</artifactId>
-                            <version>3.2.1</version>
+                            <version>3.2.2</version>
                         </dependency>
                     </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.2.2</version>
                     <configuration>
                         <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                         <encoding>UTF-8</encoding>
@@ -577,7 +577,7 @@
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit47</artifactId>
-                            <version>3.2.1</version>
+                            <version>3.2.2</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -835,7 +835,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.2</version>
                 <reportSets>
                     <reportSet>
                         <id>aggregate</id>
