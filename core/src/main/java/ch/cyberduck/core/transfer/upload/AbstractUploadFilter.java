@@ -56,6 +56,7 @@ import ch.cyberduck.core.transfer.TransferStatus;
 import ch.cyberduck.core.transfer.symlink.SymlinkResolver;
 import ch.cyberduck.ui.browser.SearchFilterFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -306,14 +307,17 @@ public abstract class AbstractUploadFilter implements TransferPathFilter {
         if(file.isFile()) {
             if(status.isExists() && !status.isAppend()) {
                 if(options.versioning) {
-                    final Versioning feature = session.getFeature(Versioning.class);
-                    if(feature != null && feature.getConfiguration(file).isEnabled()) {
-                        if(feature.save(file)) {
-                            if(log.isDebugEnabled()) {
-                                log.debug(String.format("Clear exist flag for file %s", file));
+                    switch(session.getHost().getProtocol().getVersioningMode()) {
+                        case custom:
+                            final Versioning feature = session.getFeature(Versioning.class);
+                            if(feature != null && feature.getConfiguration(file).isEnabled()) {
+                                if(feature.save(file)) {
+                                    if(log.isDebugEnabled()) {
+                                        log.debug(String.format("Clear exist flag for file %s", file));
+                                    }
+                                    status.exists(false).getDisplayname().exists(false);
+                                }
                             }
-                            status.exists(false).getDisplayname().exists(false);
-                        }
                     }
                 }
             }
@@ -353,7 +357,7 @@ public abstract class AbstractUploadFilter implements TransferPathFilter {
                 if(feature != null) {
                     try {
                         listener.message(MessageFormat.format(LocaleFactory.localizedString("Changing permission of {0} to {1}", "Status"),
-                                file.getName(), status.getAcl()));
+                                file.getName(), StringUtils.isBlank(status.getAcl().getCannedString()) ? LocaleFactory.localizedString("Unknown") : status.getAcl().getCannedString()));
                         feature.setPermission(file, status.getAcl());
                     }
                     catch(BackgroundException e) {
