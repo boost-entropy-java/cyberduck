@@ -6,7 +6,7 @@
     <artifactId>parent</artifactId>
     <name>Cyberduck</name>
     <packaging>pom</packaging>
-    <version>8.8.2-SNAPSHOT</version>
+    <version>8.8.3-SNAPSHOT</version>
 
     <modules>
         <module>defaults</module>
@@ -84,7 +84,7 @@
         <jackson-version>2.14.2</jackson-version>
         <slf4j-version>1.7.36</slf4j-version>
         <log4j-version>2.23.1</log4j-version>
-        <bouncycastle-version>1.77</bouncycastle-version>
+        <bouncycastle-version>1.78</bouncycastle-version>
         <httpclient-version>4.5.14</httpclient-version>
         <google-http-client.version>1.42.3</google-http-client.version>
         <jwt.version>4.4.0</jwt.version>
@@ -174,7 +174,7 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.16.0</version>
+                <version>2.16.1</version>
             </dependency>
             <dependency>
                 <groupId>commons-collections</groupId>
@@ -912,7 +912,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.2</version>
+                        <version>3.2.3</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
