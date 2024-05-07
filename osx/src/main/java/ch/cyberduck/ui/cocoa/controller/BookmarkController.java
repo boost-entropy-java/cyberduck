@@ -41,7 +41,6 @@ import ch.cyberduck.core.diagnostics.Reachability;
 import ch.cyberduck.core.diagnostics.ReachabilityDiagnosticsFactory;
 import ch.cyberduck.core.diagnostics.ReachabilityFactory;
 import ch.cyberduck.core.exception.HostParserException;
-import ch.cyberduck.core.exception.LocalAccessDeniedException;
 import ch.cyberduck.core.local.BrowserLauncherFactory;
 import ch.cyberduck.core.preferences.Preferences;
 import ch.cyberduck.core.preferences.PreferencesFactory;
@@ -86,7 +85,7 @@ public class BookmarkController extends SheetController implements CollectionLis
     protected final LoginInputValidator validator;
     protected final LoginOptions options;
 
-    private final HostPasswordStore keychain
+    protected final HostPasswordStore keychain
             = PasswordStoreFactory.get();
 
     @Outlet
@@ -194,7 +193,7 @@ public class BookmarkController extends SheetController implements CollectionLis
             controller.setSelectedPanel(PreferencesController.PreferencesToolbarItem.profiles.name());
         }
         else {
-            final Protocol selected = ProtocolFactory.get().forName(sender.selectedItem().representedObject());
+            final Protocol selected = protocols.forName(sender.selectedItem().representedObject());
             if(log.isDebugEnabled()) {
                 log.debug(String.format("Protocol selection changed to %s", selected));
             }
@@ -454,18 +453,10 @@ public class BookmarkController extends SheetController implements CollectionLis
                         if(StringUtils.isBlank(bookmark.getCredentials().getUsername())) {
                             return;
                         }
-                        try {
-                            final String password = keychain.getPassword(bookmark.getProtocol().getScheme(),
-                                    bookmark.getPort(),
-                                    bookmark.getHostname(),
-                                    bookmark.getCredentials().getUsername());
-                            if(StringUtils.isNotBlank(password)) {
-                                // Make sure password fetched from keychain and set in field is set in model
-                                bookmark.getCredentials().setPassword(password);
-                            }
-                        }
-                        catch(LocalAccessDeniedException e) {
-                            // Ignore
+                        final String password = keychain.findLoginPassword(bookmark);
+                        if(StringUtils.isNotBlank(password)) {
+                            // Make sure password fetched from keychain and set in field is set in model
+                            bookmark.getCredentials().setPassword(password);
                         }
                     }
                     updateField(passwordField, bookmark.getCredentials().getPassword());
