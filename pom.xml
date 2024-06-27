@@ -6,7 +6,7 @@
     <artifactId>parent</artifactId>
     <name>Cyberduck</name>
     <packaging>pom</packaging>
-    <version>8.9.1-SNAPSHOT</version>
+    <version>9.0.0-SNAPSHOT</version>
 
     <modules>
         <module>defaults</module>
@@ -580,7 +580,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.7.0</version>
+                    <version>3.7.1</version>
                     <executions>
                         <execution>
                             <id>copy-dependencies-dylib-target</id>

@@ -19,10 +19,10 @@ import ch.cyberduck.core.AttributedList;
 import ch.cyberduck.core.ListProgressListener;
 import ch.cyberduck.core.ListService;
 import ch.cyberduck.core.Path;
-import ch.cyberduck.core.ProxyListProgressListener;
 import ch.cyberduck.core.Session;
 import ch.cyberduck.core.exception.BackgroundException;
 import ch.cyberduck.core.features.Vault;
+import ch.cyberduck.core.preferences.HostPreferences;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,25 +32,31 @@ public class VaultFinderListService implements ListService {
 
     private final Session<?> session;
     private final ListService delegate;
-    private final VaultFinderListProgressListener finder;
+    private final VaultLookupListener loader;
+    private final int filecount;
 
-    public VaultFinderListService(final Session<?> session, final ListService delegate, final VaultFinderListProgressListener finder) {
+    public VaultFinderListService(final Session<?> session, final ListService delegate, final VaultLookupListener loader, final ListProgressListener listener) {
         this.session = session;
         this.delegate = delegate;
-        this.finder = finder;
+        this.loader = loader;
+        this.filecount = new HostPreferences(session.getHost()).getInteger("cryptomator.vault.autodetect.filecount");
     }
 
     @Override
     public AttributedList<Path> list(final Path directory, final ListProgressListener listener) throws BackgroundException {
         try {
-            return delegate.list(directory, new ProxyListProgressListener(finder, listener));
+            final AttributedList<Path> list = delegate.list(directory, new VaultFinderListProgressListener(session, loader, listener, filecount));
+            if(list.size() < filecount) {
+                listener.chunk(directory, list);
+            }
+            return list;
         }
         catch(VaultFoundListCanceledException finder) {
             final Vault cryptomator = finder.getVault();
             if(log.isInfoEnabled()) {
                 log.info(String.format("Found vault %s", cryptomator));
             }
-            return delegate.list(cryptomator.encrypt(session, directory), new DecryptingListProgressListener(session, cryptomator, listener.reset()));
+            return delegate.list(cryptomator.encrypt(session, directory), new DecryptingListProgressListener(session, cryptomator, listener));
         }
     }
 
