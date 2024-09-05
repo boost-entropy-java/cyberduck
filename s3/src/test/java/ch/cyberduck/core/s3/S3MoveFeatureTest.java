@@ -16,7 +16,6 @@ package ch.cyberduck.core.s3;
  */
 
 import ch.cyberduck.core.AsciiRandomStringService;
-import ch.cyberduck.core.AttributedList;
 import ch.cyberduck.core.DisabledConnectionCallback;
 import ch.cyberduck.core.DisabledListProgressListener;
 import ch.cyberduck.core.DisabledLoginCallback;
@@ -61,7 +60,7 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         final PathAttributes targetAttr = new S3AttributesFinderFeature(session, acl).find(renamed);
         assertEquals(Comparison.equal, session.getHost().getProtocol().getFeature(ComparisonService.class).compare(Path.Type.file, test.attributes(), targetAttr));
         assertEquals(Comparison.equal, session.getHost().getProtocol().getFeature(ComparisonService.class).compare(Path.Type.file, renamed.attributes(), targetAttr));
-        new S3DefaultDeleteFeature(session).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(session, acl).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 
     @Test
@@ -73,7 +72,7 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         new S3MoveFeature(virtualhost, acl).move(test, renamed, new TransferStatus(), new Delete.DisabledCallback(), new DisabledConnectionCallback());
         assertFalse(new S3FindFeature(virtualhost, acl).find(test));
         assertTrue(new S3FindFeature(virtualhost, acl).find(renamed));
-        new S3DefaultDeleteFeature(virtualhost).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(virtualhost, new S3AccessControlListFeature(session)).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 
     @Test
@@ -85,7 +84,7 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         new S3MoveFeature(virtualhost, acl).move(test, renamed, new TransferStatus(), new Delete.DisabledCallback(), new DisabledConnectionCallback());
         assertFalse(new DefaultFindFeature(virtualhost).find(test));
         assertTrue(new S3FindFeature(virtualhost, acl).find(renamed));
-        new S3DefaultDeleteFeature(virtualhost).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(virtualhost, new S3AccessControlListFeature(session)).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 
     @Test
@@ -105,27 +104,17 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         new StreamCopier(status, status).transfer(new ByteArrayInputStream(content), out);
         out.close();
         // Get new path with updated version id
-        final AttributedList<Path> list = new S3ListService(session, acl).list(container, new DisabledListProgressListener());
-        for(Path path : list) {
-            if(new SimplePathPredicate(test).test(path)) {
-                test = path;
-                break;
-            }
-        }
+        test = new S3ListService(session, acl).list(container, new DisabledListProgressListener()).find(new SimplePathPredicate(test));
         final Path renamed = new Path(container, String.format("%s-renamed", test.getName()), EnumSet.of(Path.Type.file));
         new S3MoveFeature(session, acl).move(test, renamed, new TransferStatus(), new Delete.DisabledCallback(), new DisabledConnectionCallback());
         assertTrue(new S3FindFeature(session, acl).find(test));
-        assertTrue(new S3FindFeature(session, acl).find(renamed));
         // Ensure that the latest version of the source file is a delete marker
-        for(Path path : new S3ListService(session, acl).list(container, new DisabledListProgressListener())) {
-            if(new SimplePathPredicate(test).test(path)) {
-                assertTrue(path.attributes().isDuplicate());
-                assertTrue(new S3AttributesFinderFeature(session, acl).find(path).isDuplicate());
-                assertTrue(new S3AttributesFinderFeature(session, acl).find(path).isDuplicate());
-                break;
-            }
-        }
-        new S3DefaultDeleteFeature(session).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        test = new S3ListService(session, acl).list(container, new DisabledListProgressListener()).find(new SimplePathPredicate(test));
+        assertTrue(test.attributes().isDuplicate());
+        assertTrue(new S3AttributesFinderFeature(session, acl).find(test).isDuplicate());
+        assertTrue(new S3FindFeature(session, acl).find(renamed));
+        assertEquals(content.length, new S3AttributesFinderFeature(session, acl).find(renamed).getSize());
+        new S3DefaultDeleteFeature(session, acl).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 
     @Test
@@ -139,7 +128,7 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         new S3MoveFeature(session, acl).move(test, renamed, new TransferStatus(), new Delete.DisabledCallback(), new DisabledConnectionCallback());
         assertFalse(new S3FindFeature(session, acl).find(test));
         assertTrue(new S3FindFeature(session, acl).find(renamed));
-        new S3DefaultDeleteFeature(session).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(session, acl).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 
     @Test
@@ -164,7 +153,7 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         new S3MoveFeature(session, acl).move(test, renamed, new TransferStatus(), new Delete.DisabledCallback(), new DisabledConnectionCallback());
         assertFalse(new S3FindFeature(session, acl).find(test));
         assertTrue(new S3FindFeature(session, acl).find(renamed));
-        new S3DefaultDeleteFeature(session).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(session, acl).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 
     @Test
@@ -179,6 +168,6 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         new S3MoveFeature(session, acl).move(test, renamed, new TransferStatus(), new Delete.DisabledCallback(), new DisabledConnectionCallback());
         assertFalse(new S3FindFeature(session, acl).find(test));
         assertTrue(new S3FindFeature(session, acl).find(renamed));
-        new S3DefaultDeleteFeature(session).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(session, acl).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 }

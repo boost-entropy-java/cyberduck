@@ -39,6 +39,7 @@ import ch.cyberduck.core.cdn.features.Index;
 import ch.cyberduck.core.cdn.features.Purge;
 import ch.cyberduck.core.date.RFC1123DateFormatter;
 import ch.cyberduck.core.exception.BackgroundException;
+import ch.cyberduck.core.exception.ConflictException;
 import ch.cyberduck.core.exception.InteroperabilityException;
 import ch.cyberduck.core.features.AclPermission;
 import ch.cyberduck.core.features.Delete;
@@ -1354,8 +1355,7 @@ public class InfoController extends ToolbarWindowController {
                 return false;
             }
 
-            public void tableView_willDisplayCell_forTableColumn_row(NSTableView view, NSTextFieldCell cell,
-                                                                     NSTableColumn c, NSInteger row) {
+            public void tableView_willDisplayCell_forTableColumn_row(final NSTableView view, final NSTextFieldCell cell, final NSTableColumn c, final NSInteger row) {
                 if(c.identifier().equals(MetadataColumn.VALUE.name())) {
                     final String value = metadata.get(row.intValue()).getValue();
                     if(null == value) {
@@ -1970,7 +1970,7 @@ public class InfoController extends ToolbarWindowController {
                         try {
                             transferAcceleration = session.getFeature(TransferAcceleration.class).getStatus(file);
                         }
-                        catch(InteroperabilityException e) {
+                        catch(InteroperabilityException | ConflictException e) {
                             log.warn(String.format("Ignore failure %s reading transfer acceleration", e));
                             // 405 The specified method is not allowed against this resource
                         }
