@@ -16,16 +16,15 @@ package ch.cyberduck.core.googlestorage;
  */
 
 import ch.cyberduck.core.Acl;
-import ch.cyberduck.core.Local;
 import ch.cyberduck.core.LocaleFactory;
 import ch.cyberduck.core.Path;
 import ch.cyberduck.core.PathContainerService;
+import ch.cyberduck.core.exception.AccessDeniedException;
 import ch.cyberduck.core.exception.BackgroundException;
 import ch.cyberduck.core.exception.InteroperabilityException;
 import ch.cyberduck.core.exception.NotfoundException;
 import ch.cyberduck.core.features.AclPermission;
 import ch.cyberduck.core.preferences.HostPreferences;
-import ch.cyberduck.core.shared.DefaultAclFeature;
 import ch.cyberduck.core.transfer.TransferStatus;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +34,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +46,7 @@ import com.google.api.services.storage.model.ObjectAccessControl;
 import com.google.api.services.storage.model.ObjectAccessControls;
 import com.google.api.services.storage.model.StorageObject;
 
-public class GoogleStorageAccessControlListFeature extends DefaultAclFeature implements AclPermission {
+public class GoogleStorageAccessControlListFeature implements AclPermission {
     private static final Logger log = LogManager.getLogger(GoogleStorageAccessControlListFeature.class);
 
     public static final Set<? extends Acl> CANNED_LIST = new LinkedHashSet<>(Arrays.asList(
@@ -69,14 +67,9 @@ public class GoogleStorageAccessControlListFeature extends DefaultAclFeature imp
     }
 
     @Override
-    public Acl getDefault(final EnumSet<Path.Type> type) {
-        return Acl.toAcl(new HostPreferences(session.getHost()).getProperty("googlestorage.acl.default"));
-    }
-
-    @Override
-    public Acl getDefault(final Path file, final Local local) throws BackgroundException {
+    public Acl getDefault(final Path file) throws BackgroundException {
+        final Path bucket = containerService.getContainer(file);
         try {
-            final Path bucket = containerService.getContainer(file);
             final Storage.Buckets.Get request = session.getClient().buckets().get(bucket.getName());
             if(bucket.attributes().getCustom().containsKey(GoogleStorageAttributesFinderFeature.KEY_REQUESTER_PAYS)) {
                 request.setUserProject(session.getHost().getCredentials().getUsername());
@@ -88,12 +81,18 @@ public class GoogleStorageAccessControlListFeature extends DefaultAclFeature imp
                 }
             }
             else {
-                log.warn(String.format("Missing IAM configuration for bucket %s", bucket));
+                log.warn("Missing IAM configuration for bucket {}", bucket);
             }
             return Acl.toAcl(new HostPreferences(session.getHost()).getProperty("googlestorage.acl.default"));
         }
         catch(IOException e) {
-            throw new GoogleStorageExceptionMappingService().map("Failure to read attributes of {0}", e, file);
+            try {
+                throw new GoogleStorageExceptionMappingService().map("Failure to read attributes of {0}", e, file);
+            }
+            catch(AccessDeniedException p) {
+                log.warn("Missing permission to read bucket IAM configuration for {} {}", bucket.getName(), e.getMessage());
+                return Acl.EMPTY;
+            }
         }
     }
 
@@ -255,7 +254,7 @@ public class GoogleStorageAccessControlListFeature extends DefaultAclFeature imp
                 control.setEmail(userAndRole.getUser().getIdentifier());
             }
             else {
-                log.warn(String.format("Unsupported user %s", userAndRole.getUser()));
+                log.warn("Unsupported user {}", userAndRole.getUser());
             }
             list.add(control);
         }
@@ -311,7 +310,7 @@ public class GoogleStorageAccessControlListFeature extends DefaultAclFeature imp
                 control.setEmail(userAndRole.getUser().getIdentifier());
             }
             else {
-                log.warn(String.format("Unsupported user %s", userAndRole.getUser()));
+                log.warn("Unsupported user {}", userAndRole.getUser());
             }
             list.add(control);
         }

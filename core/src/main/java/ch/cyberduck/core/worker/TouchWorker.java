@@ -52,9 +52,7 @@ public class TouchWorker extends Worker<Path> {
     @Override
     public Path run(final Session<?> session) throws BackgroundException {
         final Touch feature = session.getFeature(Touch.class);
-        if(log.isDebugEnabled()) {
-            log.debug(String.format("Run with feature %s", feature));
-        }
+        log.debug("Run with feature {}", feature);
         final TransferStatus status = new TransferStatus()
                 .withLength(0L)
                 .withModified(System.currentTimeMillis())
@@ -79,7 +77,7 @@ public class TouchWorker extends Worker<Path> {
             }
             final AclPermission acl = session.getFeature(AclPermission.class);
             if(acl != null) {
-                status.setAcl(acl.getDefault(EnumSet.of(Path.Type.file)));
+                status.setAcl(acl.getDefault(file));
             }
         }
         final Path result = feature.touch(file, status);

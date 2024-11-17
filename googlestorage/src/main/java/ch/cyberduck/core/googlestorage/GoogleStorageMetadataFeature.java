@@ -15,7 +15,6 @@ package ch.cyberduck.core.googlestorage;
  * GNU General Public License for more details.
  */
 
-import ch.cyberduck.core.Local;
 import ch.cyberduck.core.Path;
 import ch.cyberduck.core.PathContainerService;
 import ch.cyberduck.core.exception.BackgroundException;
@@ -46,7 +45,7 @@ public class GoogleStorageMetadataFeature implements Headers {
     }
 
     @Override
-    public Map<String, String> getDefault(final Local local) {
+    public Map<String, String> getDefault() {
         return new HostPreferences(session.getHost()).getMap("googlestorage.metadata.default");
     }
 
@@ -66,9 +65,7 @@ public class GoogleStorageMetadataFeature implements Headers {
 
     @Override
     public void setMetadata(final Path file, final TransferStatus status) throws BackgroundException {
-        if(log.isDebugEnabled()) {
-            log.debug(String.format("Write metadata %s for file %s", status, file));
-        }
+        log.debug("Write metadata {} for file {}", status, file);
         try {
             final Storage.Objects.Patch request = session.getClient().objects().patch(containerService.getContainer(file).getName(), containerService.getKey(file),
                     new StorageObject().setMetadata(status.getMetadata()));

@@ -34,28 +34,28 @@ public class DeepboxTouchFeature extends DefaultTouchFeature<Node> {
     private static final Logger log = LogManager.getLogger(DeepboxTouchFeature.class);
 
     private final DeepboxSession session;
+    private final DeepboxIdProvider fileid;
 
     public DeepboxTouchFeature(final DeepboxSession session, final DeepboxIdProvider fileid) {
         super(new DeepboxWriteFeature(session, fileid));
         this.session = session;
+        this.fileid = fileid;
     }
 
     @Override
     public void preflight(final Path workdir, final String filename) throws BackgroundException {
-        if(workdir.isRoot() || new DeepboxPathContainerService(session).isCompany(workdir) ||
-                new DeepboxPathContainerService(session).isDeepbox(workdir) || new DeepboxPathContainerService(session).isBox(workdir)) {
+        if(workdir.isRoot() || new DeepboxPathContainerService(session, fileid).isCompany(workdir) ||
+                new DeepboxPathContainerService(session, fileid).isDeepbox(workdir) || new DeepboxPathContainerService(session, fileid).isBox(workdir)) {
             throw new AccessDeniedException(MessageFormat.format(LocaleFactory.localizedString("Cannot create {0}", "Error"), filename)).withFile(workdir);
         }
         final Acl acl = workdir.attributes().getAcl();
         if(Acl.EMPTY == acl) {
             // Missing initialization
-            log.warn(String.format("Unknown ACLs on %s", workdir));
+            log.warn("Unknown ACLs on {}", workdir);
             return;
         }
         if(!acl.get(new Acl.CanonicalUser()).contains(CANADDCHILDREN)) {
-            if(log.isWarnEnabled()) {
-                log.warn(String.format("ACL %s for %s does not include %s", acl, workdir, CANADDCHILDREN));
-            }
+            log.warn("ACL {} for {} does not include {}", acl, workdir, CANADDCHILDREN);
             throw new AccessDeniedException(MessageFormat.format(LocaleFactory.localizedString("Cannot create {0}", "Error"), filename)).withFile(workdir);
         }
     }

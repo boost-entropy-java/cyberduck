@@ -53,7 +53,7 @@ public class S3AccessControlListFeatureTest extends AbstractS3Test {
         final Path container = new Path("test-eu-central-1-acl-disabled", EnumSet.of(Path.Type.directory, Path.Type.volume));
         final S3AccessControlListFeature f = new S3AccessControlListFeature(session);
         assertNotEquals(Acl.EMPTY, f.getPermission(container));
-        assertEquals(Acl.EMPTY, f.getDefault(container, null));
+        assertEquals(Acl.EMPTY, f.getDefault(container));
     }
 
     @Test
@@ -102,7 +102,7 @@ public class S3AccessControlListFeatureTest extends AbstractS3Test {
     @Test
     public void testWriteVirtualHostBucket() throws Exception {
         final Path test = new Path(new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file));
-        new S3TouchFeature(virtualhost, new S3AccessControlListFeature(session)).touch(test, new TransferStatus());
+        new S3TouchFeature(virtualhost, new S3AccessControlListFeature(virtualhost)).touch(test, new TransferStatus());
         final S3AccessControlListFeature f = new S3AccessControlListFeature(virtualhost);
         final Acl acl = new Acl();
         acl.addAll(new Acl.Owner("80b9982b7b08045ee86680cc47f43c84bf439494a89ece22b5330f8a49477cf6"), new Acl.Role(Acl.Role.FULL));
@@ -110,7 +110,7 @@ public class S3AccessControlListFeatureTest extends AbstractS3Test {
         acl.addAll(new Acl.GroupUser(Acl.GroupUser.AUTHENTICATED), new Acl.Role(Acl.Role.READ));
         f.setPermission(test, acl);
         assertEquals(acl, f.getPermission(test));
-        new S3DefaultDeleteFeature(virtualhost, new S3AccessControlListFeature(session)).delete(Collections.singletonList(test), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(virtualhost, new S3AccessControlListFeature(virtualhost)).delete(Collections.singletonList(test), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 
     @Test

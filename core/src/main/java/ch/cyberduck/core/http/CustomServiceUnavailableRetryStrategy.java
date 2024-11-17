@@ -39,8 +39,7 @@ public class CustomServiceUnavailableRetryStrategy extends ChainedServiceUnavail
 
     public CustomServiceUnavailableRetryStrategy(final Host host, final int executionCount, final ServiceUnavailableRetryStrategy... chain) {
         super(new ChainedServiceUnavailableRetryStrategy(new ExecutionCountServiceUnavailableRetryStrategy(
-                executionCount, new DefaultServiceUnavailableRetryStrategy(host)),
-                new ChainedServiceUnavailableRetryStrategy(chain)));
+                executionCount, new DefaultServiceUnavailableRetryStrategy(host)), new ChainedServiceUnavailableRetryStrategy(chain)));
         this.host = host;
     }
 
@@ -48,9 +47,7 @@ public class CustomServiceUnavailableRetryStrategy extends ChainedServiceUnavail
     public boolean retryRequest(final HttpResponse response, final int executionCount, final HttpContext context) {
         // Proxy to chain
         if(super.retryRequest(response, executionCount, context)) {
-            if(log.isWarnEnabled()) {
-                log.warn(String.format("Allow retry for response %s if repeatable", response));
-            }
+            log.warn("Allow retry for response {} if repeatable", response);
             return true;
         }
         return false;

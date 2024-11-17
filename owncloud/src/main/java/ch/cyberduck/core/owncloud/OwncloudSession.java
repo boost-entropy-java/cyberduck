@@ -97,7 +97,9 @@ public class OwncloudSession extends DAVSession {
     protected DAVClient connect(final ProxyFinder proxy, final HostKeyCallback key, final LoginCallback prompt, final CancelCallback cancel) throws BackgroundException {
         final DAVClient client = super.connect(proxy, key, prompt, cancel);
         try {
-            client.execute(new TusCapabilitiesRequest(host, new OwncloudHomeFeature(host).find(OwncloudHomeFeature.Context.tus)), new TusCapabilitiesResponseHandler(tus));
+            final TusCapabilitiesRequest request = new TusCapabilitiesRequest(host, new OwncloudHomeFeature(host).find(OwncloudHomeFeature.Context.tus));
+            log.debug("Query Tus capabilities at {}", request);
+            client.execute(request, new TusCapabilitiesResponseHandler(tus));
         }
         catch(HttpResponseException e) {
             throw new DefaultHttpResponseExceptionMappingService().map(e);
@@ -136,7 +138,7 @@ public class OwncloudSession extends DAVSession {
                 }
             }
             catch(JWTDecodeException e) {
-                log.warn(String.format("Failure %s decoding JWT %s", e, oauth.getIdToken()));
+                log.warn("Failure {} decoding JWT {}", e, oauth.getIdToken());
             }
         }
         super.login(prompt, cancel);

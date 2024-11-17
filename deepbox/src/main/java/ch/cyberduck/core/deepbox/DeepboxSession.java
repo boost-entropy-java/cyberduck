@@ -117,8 +117,6 @@ public class DeepboxSession extends HttpSession<DeepboxApiClient> {
                 );
         configuration.setServiceUnavailableRetryStrategy(new CustomServiceUnavailableRetryStrategy(host,
                 new ExecutionCountServiceUnavailableRetryStrategy(new OAuth2ErrorResponseInterceptor(host, authorizationService))));
-        new ChainedServiceUnavailableRetryStrategy(new ExecutionCountServiceUnavailableRetryStrategy(
-                new ExecutionCountServiceUnavailableRetryStrategy(new OAuth2ErrorResponseInterceptor(host, authorizationService))));
         configuration.addInterceptorLast(authorizationService);
         final String locale = this.pinLocalization();
         configuration.addInterceptorLast((HttpRequestInterceptor) (request, context) -> request.addHeader("Accept-Language", locale));
@@ -175,9 +173,7 @@ public class DeepboxSession extends HttpSession<DeepboxApiClient> {
         final Credentials credentials = authorizationService.validate();
         try {
             final Me me = new UserRestControllerApi(client).usersMe(null, null);
-            if(log.isDebugEnabled()) {
-                log.debug(String.format("Authenticated for user %s", me));
-            }
+            log.debug("Authenticated for user {}", me);
             credentials.setUsername(me.getEmail());
         }
         catch(ApiException e) {

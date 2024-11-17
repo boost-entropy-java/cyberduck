@@ -50,14 +50,19 @@ public class S3AWS2SignatureRequestInterceptor implements HttpRequestInterceptor
     @Override
     public void process(final HttpRequest request, final HttpContext context) throws IOException {
         if(!session.getClient().isAuthenticatedConnection()) {
-            log.warn(String.format("Skip authentication request %s", request));
+            log.warn("Skip authentication request {}", request);
             return;
         }
         final ProviderCredentials credentials = session.getClient().getProviderCredentials();
-        final String bucketName = context.getAttribute("bucket").toString();
-        if(log.isDebugEnabled()) {
-            log.debug(String.format("Use bucket name %s from context", bucketName));
+        final String bucketName;
+        if(context.getAttribute("bucket") == null) {
+            log.warn("No bucket name in context {}", context);
+            bucketName = StringUtils.EMPTY;
         }
+        else {
+            bucketName = context.getAttribute("bucket").toString();
+        }
+        log.debug("Use bucket name {} from context", bucketName);
         final URI uri;
         try {
             uri = new URI(request.getRequestLine().getUri());
@@ -66,10 +71,9 @@ public class S3AWS2SignatureRequestInterceptor implements HttpRequestInterceptor
             throw new IOException(e);
         }
         String path = uri.getRawPath();
-        // If bucket name is not already part of the full path, add it.
-        // This can be the case if the Host name has a bucket-name prefix,
-        // or if the Host name constitutes the bucket name for DNS-redirects.
-        if(!StringUtils.startsWith(path, bucketName)) {
+        // If the request specifies a bucket using the HTTP Host header (virtual hosted-style), append
+        // the bucket name preceded by a "/"
+        if(!StringUtils.startsWith(path, String.format("/%s", bucketName))) {
             path = String.format("/%s%s", bucketName, path);
         }
         final String queryString = uri.getRawQuery();

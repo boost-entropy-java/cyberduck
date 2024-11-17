@@ -4,6 +4,7 @@ import ch.cyberduck.core.Acl;
 import ch.cyberduck.core.AlphanumericRandomStringService;
 import ch.cyberduck.core.BytecountStreamListener;
 import ch.cyberduck.core.DisabledConnectionCallback;
+import ch.cyberduck.core.DisabledListProgressListener;
 import ch.cyberduck.core.DisabledLoginCallback;
 import ch.cyberduck.core.Path;
 import ch.cyberduck.core.exception.NotfoundException;
@@ -60,6 +61,17 @@ public class S3ReadFeatureTest extends AbstractS3Test {
         final byte[] reference = new byte[content.length - 100];
         System.arraycopy(content, 100, reference, 0, content.length - 100);
         assertArrayEquals(reference, buffer.toByteArray());
+        in.close();
+        new S3DefaultDeleteFeature(session, new S3AccessControlListFeature(session)).delete(Collections.singletonList(test), new DisabledLoginCallback(), new Delete.DisabledCallback());
+    }
+
+    @Test
+    public void testReadEmoji() throws Exception {
+        final Path container = new Path("test-eu-central-1-cyberduck", EnumSet.of(Path.Type.directory, Path.Type.volume));
+        final Path test = new S3TouchFeature(session, new S3AccessControlListFeature(session)).touch(
+                new Path(container, String.format("%s-\uD83D\uDE80", new AlphanumericRandomStringService().random()), EnumSet.of(Path.Type.file)), new TransferStatus());
+        assertTrue(new S3ListService(session, new S3AccessControlListFeature(session)).list(container, new DisabledListProgressListener()).contains(test));
+        final InputStream in = new S3ReadFeature(session).read(test, new TransferStatus().withLength(0L), new DisabledConnectionCallback());
         in.close();
         new S3DefaultDeleteFeature(session, new S3AccessControlListFeature(session)).delete(Collections.singletonList(test), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
@@ -160,13 +172,13 @@ public class S3ReadFeatureTest extends AbstractS3Test {
         final byte[] content = RandomUtils.nextBytes(2018);
         final TransferStatus status = new TransferStatus().withLength(content.length);
         status.setChecksum(new SHA256ChecksumCompute().compute(new ByteArrayInputStream(content), status));
-        final OutputStream out = new S3WriteFeature(virtualhost, new S3AccessControlListFeature(session)).write(file, status, new DisabledConnectionCallback());
+        final OutputStream out = new S3WriteFeature(virtualhost, new S3AccessControlListFeature(virtualhost)).write(file, status, new DisabledConnectionCallback());
         new StreamCopier(new TransferStatus(), new TransferStatus()).transfer(new ByteArrayInputStream(content), out);
         final CountingInputStream in = new CountingInputStream(new S3ReadFeature(virtualhost).read(
                 new Path(file.getName(), EnumSet.of(Path.Type.file)), status, new DisabledConnectionCallback()));
         final BytecountStreamListener count = new BytecountStreamListener();
         new StreamCopier(status, status).withListener(count).transfer(in, NullOutputStream.NULL_OUTPUT_STREAM);
         assertEquals(content.length, count.getRecv());
-        new S3DefaultDeleteFeature(virtualhost, new S3AccessControlListFeature(session)).delete(Collections.singletonList(file), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new S3DefaultDeleteFeature(virtualhost, new S3AccessControlListFeature(virtualhost)).delete(Collections.singletonList(file), new DisabledLoginCallback(), new Delete.DisabledCallback());
     }
 }

@@ -61,37 +61,16 @@ public class S3LocationFeature implements Location {
 
     @Override
     public Set<Name> getLocations() {
-        if(StringUtils.isNotBlank(session.getHost().getRegion())) {
-            final S3Region region = new S3Region(session.getHost().getRegion());
-            if(log.isDebugEnabled()) {
-                log.debug(String.format("Return single region %s set in bookmark", region));
-            }
-            return Collections.singleton(region);
-        }
         if(StringUtils.isNotEmpty(RequestEntityRestStorageService.findBucketInHostname(session.getHost()))) {
-            if(log.isDebugEnabled()) {
-                log.debug(String.format("Return empty set for hostname %s", session.getHost()));
-            }
+            log.debug("Return empty set for hostname {}", session.getHost());
             // Connected to single bucket
             return Collections.emptySet();
-        }
-        if(!S3Session.isAwsHostname(session.getHost().getHostname(), false)) {
-            if(new S3Protocol().getRegions().equals(session.getHost().getProtocol().getRegions())) {
-                // Return empty set for unknown provider
-                if(log.isDebugEnabled()) {
-                    log.debug(String.format("Return empty set for unknown provider %s", session.getHost()));
-                }
-                return Collections.emptySet();
-            }
         }
         return session.getHost().getProtocol().getRegions();
     }
 
     @Override
     public Name getLocation(final Path file) throws BackgroundException {
-        if(StringUtils.isNotBlank(session.getHost().getRegion())) {
-            return new S3Region(session.getHost().getRegion());
-        }
         final Path bucket = containerService.getContainer(file);
         return this.getLocation(bucket.isRoot() ? StringUtils.EMPTY : bucket.getName());
     }
@@ -106,14 +85,17 @@ public class S3LocationFeature implements Location {
                 log.warn("Skip attempt to read bucket location with missing credentials");
                 return Location.unknown;
             }
-            if(log.isDebugEnabled()) {
-                log.debug(String.format("Query location for bucket %s", bucketname));
-            }
+            log.debug("Query location for bucket {}", bucketname);
             final String location = session.getClient().getBucketLocation(bucketname);
             final S3Region region;
             if(StringUtils.isBlank(location)) {
-                log.warn(String.format("No region known for bucket %s", bucketname));
-                region = DEFAULT_REGION;
+                log.warn("No region known for bucket {}", bucketname);
+                if(StringUtils.isNotBlank(session.getHost().getRegion())) {
+                    region = new S3Region(session.getHost().getRegion());
+                }
+                else {
+                    region = DEFAULT_REGION;
+                }
             }
             else {
                 switch(location) {
@@ -146,11 +128,11 @@ public class S3LocationFeature implements Location {
                 throw new S3ExceptionMappingService().map("Cannot read bucket location", e);
             }
             catch(AccessDeniedException l) {
-                log.warn(String.format("Missing permission to read location for %s %s", bucketname, e.getMessage()));
+                log.warn("Missing permission to read location for {} {}", bucketname, e.getMessage());
                 return unknown;
             }
             catch(InteroperabilityException i) {
-                log.warn(String.format("Not supported to read location for %s %s", bucketname, e.getMessage()));
+                log.warn("Not supported to read location for {} {}", bucketname, e.getMessage());
                 return unknown;
             }
         }

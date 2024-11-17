@@ -73,7 +73,7 @@ public class Collection<E> extends ArrayList<E> implements CollectionListener<E>
         final List<E> temporary = new ArrayList<>();
         for(E item : c) {
             if(temporary.contains(item)) {
-                log.warn(String.format("Skip adding duplicate %s", item));
+                log.warn("Skip adding duplicate {}", item);
                 continue;
             }
             temporary.add(item);
@@ -92,7 +92,7 @@ public class Collection<E> extends ArrayList<E> implements CollectionListener<E>
         final List<E> temporary = new ArrayList<>();
         for(E item : c) {
             if(temporary.contains(item)) {
-                log.warn(String.format("Skip adding duplicate %s", item));
+                log.warn("Skip adding duplicate {}", item);
                 continue;
             }
             temporary.add(item);
@@ -109,7 +109,7 @@ public class Collection<E> extends ArrayList<E> implements CollectionListener<E>
     @Override
     public boolean add(E item) {
         if(this.contains(item)) {
-            log.warn(String.format("Skip adding duplicate %s", item));
+            log.warn("Skip adding duplicate {}", item);
             return false;
         }
         if(super.add(item)) {
@@ -122,15 +122,24 @@ public class Collection<E> extends ArrayList<E> implements CollectionListener<E>
     @Override
     public void add(int row, E item) {
         if(this.contains(item)) {
-            log.warn(String.format("Skip adding duplicate %s", item));
+            log.warn("Skip adding duplicate {}", item);
             return;
         }
         super.add(row, item);
         this.collectionItemAdded(item);
     }
 
-    public void replace(int row, E item) {
-        this.set(row, item);
+    public E set(int row, E item) {
+        final E previous = super.set(row, item);
+        for(CollectionListener<E> listener : listeners) {
+            listener.collectionItemChanged(item);
+        }
+        return previous;
+    }
+
+    public void move(int from, int to) {
+        final E item = super.remove(from);
+        this.add(to, item);
         for(CollectionListener<E> listener : listeners) {
             listener.collectionItemChanged(item);
         }

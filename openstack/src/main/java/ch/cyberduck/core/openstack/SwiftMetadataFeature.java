@@ -20,7 +20,6 @@ package ch.cyberduck.core.openstack;
 
 import ch.cyberduck.core.DefaultIOExceptionMappingService;
 import ch.cyberduck.core.DefaultPathContainerService;
-import ch.cyberduck.core.Local;
 import ch.cyberduck.core.Path;
 import ch.cyberduck.core.PathContainerService;
 import ch.cyberduck.core.exception.BackgroundException;
@@ -55,7 +54,7 @@ public class SwiftMetadataFeature implements Headers {
     }
 
     @Override
-    public Map<String, String> getDefault(final Local local) {
+    public Map<String, String> getDefault() {
         return new HostPreferences(session.getHost()).getMap("openstack.metadata.default");
     }
 
@@ -88,20 +87,16 @@ public class SwiftMetadataFeature implements Headers {
                 for(Map.Entry<String, String> entry : file.attributes().getMetadata().entrySet()) {
                     // Choose metadata values to remove
                     if(!status.getMetadata().containsKey(entry.getKey())) {
-                        log.debug(String.format("Remove metadata with key %s", entry.getKey()));
+                        log.debug("Remove metadata with key {}", entry.getKey());
                         status.getMetadata().put(entry.getKey(), StringUtils.EMPTY);
                     }
                 }
-                if(log.isDebugEnabled()) {
-                    log.debug(String.format("Write metadata %s for file %s", status, file));
-                }
+                log.debug("Write metadata {} for file {}", status, file);
                 session.getClient().updateContainerMetadata(regionService.lookup(file),
                     containerService.getContainer(file).getName(), status.getMetadata());
             }
             else {
-                if(log.isDebugEnabled()) {
-                    log.debug(String.format("Write metadata %s for file %s", status, file));
-                }
+                log.debug("Write metadata {} for file {}", status, file);
                 session.getClient().updateObjectMetadata(regionService.lookup(file),
                     containerService.getContainer(file).getName(), containerService.getKey(file), status.getMetadata());
             }

@@ -52,9 +52,7 @@ public class CreateDirectoryWorker extends Worker<Path> {
     @Override
     public Path run(final Session<?> session) throws BackgroundException {
         final Directory feature = session.getFeature(Directory.class);
-        if(log.isDebugEnabled()) {
-            log.debug(String.format("Run with feature %s", feature));
-        }
+        log.debug("Run with feature {}", feature);
         final TransferStatus status = new TransferStatus().withLength(0L);
         final Encryption encryption = session.getFeature(Encryption.class);
         if(encryption != null) {
@@ -68,7 +66,7 @@ public class CreateDirectoryWorker extends Worker<Path> {
             }
             final AclPermission acl = session.getFeature(AclPermission.class);
             if(acl != null) {
-                status.setAcl(acl.getDefault(EnumSet.of(Path.Type.directory)));
+                status.setAcl(acl.getDefault(folder));
             }
         }
         status.setRegion(region);

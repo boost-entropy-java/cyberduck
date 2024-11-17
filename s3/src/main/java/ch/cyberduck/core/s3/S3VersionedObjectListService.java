@@ -97,9 +97,7 @@ public class S3VersionedObjectListService extends S3AbstractListService implemen
         final ThreadPool pool = ThreadPoolFactory.get("list", concurrency);
         try {
             final String prefix = this.createPrefix(directory);
-            if(log.isDebugEnabled()) {
-                log.debug(String.format("List with prefix %s", prefix));
-            }
+            log.debug("List with prefix {}", prefix);
             final Path bucket = containerService.getContainer(directory);
             final AttributedList<Path> objects = new AttributedList<>();
             String priorLastKey = null;
@@ -116,9 +114,7 @@ public class S3VersionedObjectListService extends S3AbstractListService implemen
                 for(BaseVersionOrDeleteMarker marker : chunk.getItems()) {
                     final String key = URIEncoder.decode(marker.getKey());
                     if(new SimplePathPredicate(PathNormalizer.compose(bucket, key)).test(directory)) {
-                        if(log.isDebugEnabled()) {
-                            log.debug(String.format("Skip placeholder key %s", key));
-                        }
+                        log.debug("Skip placeholder key {}", key);
                         hasDirectoryPlaceholder = true;
                         continue;
                     }
@@ -152,7 +148,10 @@ public class S3VersionedObjectListService extends S3AbstractListService implemen
                     final Path f = new Path(directory.isDirectory() ? directory : directory.getParent(),
                             PathNormalizer.name(key), EnumSet.of(Path.Type.file), attr);
                     if(metadata) {
-                        f.withAttributes(attributes.find(f));
+                        // Method Not Allowed for delete marker
+                        if(!marker.isDeleteMarker()) {
+                            f.withAttributes(attributes.find(f));
+                        }
                     }
                     objects.add(f);
                     lastKey = key;
@@ -170,7 +169,7 @@ public class S3VersionedObjectListService extends S3AbstractListService implemen
                         objects.add(Uninterruptibles.getUninterruptibly(f));
                     }
                     catch(ExecutionException e) {
-                        log.warn(String.format("Listing versioned objects failed with execution failure %s", e.getMessage()));
+                        log.warn("Listing versioned objects failed with execution failure {}", e.getMessage());
                         for(Throwable cause : ExceptionUtils.getThrowableList(e)) {
                             Throwables.throwIfInstanceOf(cause, BackgroundException.class);
                         }
@@ -186,9 +185,7 @@ public class S3VersionedObjectListService extends S3AbstractListService implemen
                 // Only for AWS
                 if(S3Session.isAwsHostname(session.getHost().getHostname())) {
                     if(StringUtils.isEmpty(RequestEntityRestStorageService.findBucketInHostname(session.getHost()))) {
-                        if(log.isWarnEnabled()) {
-                            log.warn(String.format("No placeholder found for directory %s", directory));
-                        }
+                        log.warn("No placeholder found for directory {}", directory);
                         throw new NotfoundException(directory.getAbsolute());
                     }
                 }

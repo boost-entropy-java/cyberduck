@@ -28,7 +28,6 @@ import ch.cyberduck.core.exception.ConflictException;
 import ch.cyberduck.core.exception.InvalidFilenameException;
 import ch.cyberduck.core.exception.NotfoundException;
 import ch.cyberduck.core.features.Directory;
-import ch.cyberduck.core.features.Write;
 import ch.cyberduck.core.transfer.TransferStatus;
 
 import org.apache.commons.lang3.StringUtils;
@@ -73,7 +72,7 @@ public class EueDirectoryFeature implements Directory<EueWriteFeature.Chunk> {
                     fileid.cache(folder, resourceId);
                     return folder;
                 default:
-                    log.warn(String.format("Failure %s creating folder %s", resourceCreationResponseEntry, folder));
+                    log.warn("Failure {} creating folder {}", resourceCreationResponseEntry, folder);
                     final ResourceCreationResponseEntryEntity entity = resourceCreationResponseEntry.getEntity();
                     if(null == entity) {
                         throw new EueExceptionMappingService().map(new ApiException(resourceCreationResponseEntry.getReason(),
@@ -93,10 +92,5 @@ public class EueDirectoryFeature implements Directory<EueWriteFeature.Chunk> {
         if(!EueTouchFeature.validate(filename)) {
             throw new InvalidFilenameException(MessageFormat.format(LocaleFactory.localizedString("Cannot create folder {0}", "Error"), filename));
         }
-    }
-
-    @Override
-    public Directory<EueWriteFeature.Chunk> withWriter(final Write<EueWriteFeature.Chunk> writer) {
-        return this;
     }
 }

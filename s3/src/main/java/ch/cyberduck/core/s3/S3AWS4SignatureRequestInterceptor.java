@@ -57,14 +57,19 @@ public class S3AWS4SignatureRequestInterceptor implements HttpRequestInterceptor
     @Override
     public void process(final HttpRequest request, final HttpContext context) throws IOException {
         if(!session.getClient().isAuthenticatedConnection()) {
-            log.warn(String.format("Skip authentication request %s", request));
+            log.warn("Skip authentication request {}", request);
             return;
         }
         final ProviderCredentials credentials = session.getClient().getProviderCredentials();
-        final String bucketName = context.getAttribute("bucket").toString();
-        if(log.isDebugEnabled()) {
-            log.debug(String.format("Use bucket name %s from context", bucketName));
+        final String bucketName;
+        if(context.getAttribute("bucket") == null) {
+            log.warn("No bucket name in context {}", context);
+            bucketName = StringUtils.EMPTY;
         }
+        else {
+            bucketName = context.getAttribute("bucket").toString();
+        }
+        log.debug("Use bucket name {} from context", bucketName);
         final URI uri;
         try {
             uri = new URI(request.getRequestLine().getUri());
@@ -78,23 +83,24 @@ public class S3AWS4SignatureRequestInterceptor implements HttpRequestInterceptor
             if(host != null) {
                 try {
                     region = SignatureUtils.awsRegionForRequest(new URI(host.toURI()));
+                    log.debug("Determined region {} from URI {}", region, host.toURI());
                 }
                 catch(URISyntaxException e) {
                     throw new IOException(e);
                 }
             }
             if(region != null) {
-                if(log.isDebugEnabled()) {
-                    log.debug(String.format("Cache region %s for bucket %s", region, bucketName));
-                }
+                log.debug("Cache region {} for bucket {}", region, bucketName);
                 session.getClient().getRegionEndpointCache().putRegionForBucketName(bucketName, region);
             }
         }
         if(null == region) {
             region = session.getHost().getRegion();
+            log.debug("Determined region {} from {}", region, session.getHost());
         }
         if(null == region) {
             region = new HostPreferences(session.getHost()).getProperty("s3.location");
+            log.debug("Determined region {} from defaults", region);
         }
         final HttpUriRequest message = (HttpUriRequest) request;
         String requestPayloadHexSHA256Hash =
