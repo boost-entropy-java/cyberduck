@@ -28,6 +28,7 @@ import ch.cyberduck.core.exception.AccessDeniedException;
 import ch.cyberduck.core.exception.BackgroundException;
 import ch.cyberduck.core.features.Versioning;
 import ch.cyberduck.core.io.DisabledStreamListener;
+import ch.cyberduck.core.preferences.HostPreferences;
 import ch.cyberduck.core.transfer.TransferStatus;
 
 import org.apache.logging.log4j.LogManager;
@@ -48,7 +49,7 @@ public class GoogleStorageVersioningFeature implements Versioning {
 
     public GoogleStorageVersioningFeature(final GoogleStorageSession session) {
         this.session = session;
-        this.containerService = session.getFeature(PathContainerService.class);
+        this.containerService = new GoogleStoragePathContainerService();
     }
 
     @Override
@@ -109,7 +110,8 @@ public class GoogleStorageVersioningFeature implements Versioning {
         if(file.isDirectory()) {
             return AttributedList.emptyList();
         }
-        return new GoogleStorageObjectListService(session).list(file, listener).filter(new NullFilter<Path>() {
+        return new GoogleStorageObjectListService(session).list(file, listener, String.valueOf(Path.DELIMITER),
+                new HostPreferences(session.getHost()).getInteger("googlestorage.listing.chunksize"), new VersioningConfiguration(true)).filter(new NullFilter<Path>() {
             @Override
             public boolean accept(final Path file) {
                 return file.attributes().isDuplicate();
