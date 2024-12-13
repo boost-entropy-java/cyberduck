@@ -49,7 +49,7 @@
 
     <profiles>
         <profile>
-            <id>codegen-deepbox</id>
+            <id>codegen</id>
             <build>
                 <plugins>
                     <plugin>
@@ -57,6 +57,7 @@
                         <artifactId>swagger-codegen-maven-plugin</artifactId>
                         <executions>
                             <execution>
+                                <id>codegen-deepbox</id>
                                 <goals>
                                     <goal>generate</goal>
                                 </goals>
@@ -74,20 +75,8 @@
                                     <apiPackage>ch.cyberduck.core.deepbox.io.swagger.client.api</apiPackage>
                                 </configuration>
                             </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>codegen-deepcloud</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.swagger.codegen.v3</groupId>
-                        <artifactId>swagger-codegen-maven-plugin</artifactId>
-                        <executions>
                             <execution>
+                                <id>codegen-deepcloud</id>
                                 <goals>
                                     <goal>generate</goal>
                                 </goals>
