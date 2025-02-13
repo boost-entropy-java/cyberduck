@@ -34,9 +34,14 @@ import ch.cyberduck.core.updater.AbstractPeriodicUpdateChecker;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.rococoa.ID;
+import org.rococoa.ObjCObjectByReference;
+import org.rococoa.cocoa.foundation.NSError;
 
 public class SparklePeriodicUpdateChecker extends AbstractPeriodicUpdateChecker {
     private static final Logger log = LogManager.getLogger(SparklePeriodicUpdateChecker.class);
+
+    private static final Preferences preferences
+            = PreferencesFactory.get();
 
     static {
         Native.load("core");
@@ -46,22 +51,24 @@ public class SparklePeriodicUpdateChecker extends AbstractPeriodicUpdateChecker 
 
     @Delegate
     private final SparklePeriodicUpdateCheckerDelegate delegate;
-
-    private static final Preferences preferences
-            = PreferencesFactory.get();
+    private final SPUStandardUserDriver driver;
 
     public SparklePeriodicUpdateChecker(final Controller controller) {
         super(controller);
         delegate = new SparklePeriodicUpdateCheckerDelegate();
-        updater = SPUUpdater.create(SPUStandardUserDriver.create(NSBundle.mainBundle(), delegate.id()), delegate.id());
+        driver = SPUStandardUserDriver.create(NSBundle.mainBundle(), delegate.id());
+        updater = SPUUpdater.create(driver, delegate.id());
         updater.clearFeedURLFromUserDefaults();
         // Update checks are scheduled using own timer from super class
         updater.setAutomaticallyChecksForUpdates(false);
         updater.setAutomaticallyDownloadsUpdates(preferences.getBoolean("update.check.auto"));
         updater.setUserAgentString(new PreferencesUseragentProvider().get());
         updater.setSendsSystemProfile(false);
-        if(!updater.startUpdater(null)) {
-            log.error("Failure starting updater");
+        // This must be called on the main thread
+        final ObjCObjectByReference error = new ObjCObjectByReference();
+        if(!updater.startUpdater(error)) {
+            final NSError f = error.getValueAs(NSError.class);
+            log.error("Failure {} starting updater", f);
         }
     }
 
@@ -75,6 +82,7 @@ public class SparklePeriodicUpdateChecker extends AbstractPeriodicUpdateChecker 
             else {
                 log.debug("Check for update");
                 updater.checkForUpdates();
+                driver.showUpdateInFocus();
             }
         }
     }
