@@ -18,15 +18,16 @@ package ch.cyberduck.core.local;
  * feedback@cyberduck.io
  */
 
-import ch.cyberduck.binding.foundation.NSURL;
+import static ch.cyberduck.binding.foundation.NSURL.NSURLBookmarkCreationOptions.NSURLBookmarkCreationWithSecurityScope;
+import static ch.cyberduck.binding.foundation.NSURL.NSURLBookmarkResolutionOptions.*;
 
 /**
  * To provide persistent access to resources located outside of your container, in a way that doesn’t
  * depend on Resume, use security-scoped bookmarks for persistent access.
  */
-public class SecurityScopedFilesystemBookmarkResolver extends AbstractPromptBookmarkResolver {
+public class SecurityScopedFilesystemBookmarkResolver extends NSURLPromptBookmarkResolver {
 
     public SecurityScopedFilesystemBookmarkResolver() {
-        super(NSURL.NSURLBookmarkCreationOptions.NSURLBookmarkCreationWithSecurityScope, NSURL.NSURLBookmarkResolutionOptions.NSURLBookmarkResolutionWithSecurityScope);
+        super(NSURLBookmarkCreationWithSecurityScope, NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithSecurityScope | NSURLBookmarkResolutionWithoutImplicitStartAccessing);
     }
 }
