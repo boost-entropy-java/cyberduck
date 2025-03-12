@@ -47,7 +47,7 @@ public class ResumeFilterTest {
                     }
                 };
             }
-        }, new TransferStatus().exists(true), new DisabledProgressListener()));
+        }, new TransferStatus().setExists(true), new DisabledProgressListener()));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ResumeFilterTest {
                 };
             }
 
-        }, new TransferStatus().exists(true), new DisabledProgressListener()));
+        }, new TransferStatus().setExists(true), new DisabledProgressListener()));
     }
 
     @Test
@@ -100,7 +100,7 @@ public class ResumeFilterTest {
                 new UploadFilterOptions(host).withTemporary(true));
         final Path t = new Path("t", EnumSet.of(Path.Type.file));
         t.attributes().setSize(7L);
-        final TransferStatus status = f.prepare(t, new NullLocal("t"), new TransferStatus().exists(true), new DisabledProgressListener());
+        final TransferStatus status = f.prepare(t, new NullLocal("t"), new TransferStatus().setExists(true), new DisabledProgressListener());
         assertFalse(status.isAppend());
         assertFalse(status.isExists());
         assertNotNull(status.getRename().remote);
@@ -136,7 +136,7 @@ public class ResumeFilterTest {
             public boolean isFile() {
                 return true;
             }
-        }, new TransferStatus().exists(true), new DisabledProgressListener());
+        }, new TransferStatus().setExists(true), new DisabledProgressListener());
         assertTrue(status.isAppend());
         assertTrue(status.isExists());
         // Temporary target
@@ -151,7 +151,7 @@ public class ResumeFilterTest {
             @Override
             public AttributedList<Path> list(final Path folder, final ListProgressListener listener) throws BackgroundException {
                 final AttributedList<Path> list = new AttributedList<>(Collections.singletonList(new Path(folder, "t", EnumSet.of(Path.Type.file))
-                        .withAttributes(new PathAttributes().withSize(3L))));
+                        .withAttributes(new PathAttributes().setSize(3L))));
                 listener.chunk(folder, list);
                 return list;
             }
@@ -180,7 +180,7 @@ public class ResumeFilterTest {
             public boolean exists() {
                 return true;
             }
-        }, new TransferStatus().exists(true), new DisabledProgressListener()));
+        }, new TransferStatus().setExists(true), new DisabledProgressListener()));
     }
 
     @Test
@@ -190,7 +190,7 @@ public class ResumeFilterTest {
             @Override
             public AttributedList<Path> list(final Path folder, final ListProgressListener listener) throws BackgroundException {
                 final AttributedList<Path> list = new AttributedList<>(Collections.singletonList(new Path(folder, "t", EnumSet.of(Path.Type.file))
-                        .withAttributes(new PathAttributes().withSize(2L))));
+                        .withAttributes(new PathAttributes().setSize(2L))));
                 listener.chunk(folder, list);
                 return list;
             }
@@ -221,11 +221,11 @@ public class ResumeFilterTest {
                 return true;
             }
         };
-        assertTrue(f.accept(t, l, new TransferStatus().exists(true), new DisabledProgressListener()));
+        assertTrue(f.accept(t, l, new TransferStatus().setExists(true), new DisabledProgressListener()));
         // Remaining length to transfer is 1
-        assertEquals(1L, f.prepare(t, l, new TransferStatus().exists(true), new DisabledProgressListener()).getLength());
+        assertEquals(1L, f.prepare(t, l, new TransferStatus().setExists(true), new DisabledProgressListener()).getLength());
         // Skip first 2 bytes
-        assertEquals(2L, f.prepare(t, l, new TransferStatus().exists(true), new DisabledProgressListener()).getOffset());
+        assertEquals(2L, f.prepare(t, l, new TransferStatus().setExists(true), new DisabledProgressListener()).getOffset());
     }
 
     @Test
@@ -235,7 +235,7 @@ public class ResumeFilterTest {
             @Override
             public AttributedList<Path> list(final Path folder, final ListProgressListener listener) throws BackgroundException {
                 final AttributedList<Path> list = new AttributedList<>(Collections.singletonList(new Path(folder, "t", EnumSet.of(Path.Type.file))
-                        .withAttributes(new PathAttributes().withSize(4L))));
+                        .withAttributes(new PathAttributes().setSize(4L))));
                 listener.chunk(folder, list);
                 return list;
             }
@@ -265,7 +265,7 @@ public class ResumeFilterTest {
                 return true;
             }
         };
-        assertTrue(f.accept(t, l, new TransferStatus().exists(true), new DisabledProgressListener()));
-        assertFalse(f.prepare(t, l, new TransferStatus().exists(true), new DisabledProgressListener()).isAppend());
+        assertTrue(f.accept(t, l, new TransferStatus().setExists(true), new DisabledProgressListener()));
+        assertFalse(f.prepare(t, l, new TransferStatus().setExists(true), new DisabledProgressListener()).isAppend());
     }
 }

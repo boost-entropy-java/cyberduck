@@ -78,14 +78,15 @@ public class CteraReadFeatureTest extends AbstractCteraTest {
         out.close();
         new DAVUploadFeature(session).upload(
                 test, local, new BandwidthThrottle(BandwidthThrottle.UNLIMITED), new DisabledProgressListener(), new DisabledStreamListener(),
-                new TransferStatus().withLength(content.length),
+                new TransferStatus().setLength(content.length),
                 new DisabledConnectionCallback());
         // Unknown length in status
         final TransferStatus status = new TransferStatus() {
             @Override
-            public void setLength(long length) {
+            public TransferStatus setLength(long length) {
                 assertEquals(923L, length);
                 // Ignore update. As with unknown length for chunked transfer
+                return this;
             }
         };
         new DefaultDownloadFeature(session.getFeature(Read.class)).download(test, local, new BandwidthThrottle(BandwidthThrottle.UNLIMITED),
@@ -125,13 +126,13 @@ public class CteraReadFeatureTest extends AbstractCteraTest {
         out.close();
         new DAVUploadFeature(session).upload(
                 test, local, new BandwidthThrottle(BandwidthThrottle.UNLIMITED), new DisabledProgressListener(), new DisabledStreamListener(),
-                new TransferStatus().withLength(content.length),
+                new TransferStatus().setLength(content.length),
                 new DisabledConnectionCallback());
         final TransferStatus status = new TransferStatus();
         status.setLength(content.length);
         status.setAppend(true);
         status.setOffset(100L);
-        final InputStream in = new CteraReadFeature(session).read(test, status.withLength(content.length - 100), new DisabledConnectionCallback());
+        final InputStream in = new CteraReadFeature(session).read(test, status.setLength(content.length - 100), new DisabledConnectionCallback());
         assertNotNull(in);
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream(content.length - 100);
         new StreamCopier(status, status).transfer(in, buffer);
@@ -153,7 +154,7 @@ public class CteraReadFeatureTest extends AbstractCteraTest {
         out.close();
         new DAVUploadFeature(session).upload(
                 test, local, new BandwidthThrottle(BandwidthThrottle.UNLIMITED), new DisabledProgressListener(), new DisabledStreamListener(),
-                new TransferStatus().withLength(content.length),
+                new TransferStatus().setLength(content.length),
                 new DisabledConnectionCallback());
         final TransferStatus status = new TransferStatus();
         status.setLength(-1L);
@@ -184,21 +185,21 @@ public class CteraReadFeatureTest extends AbstractCteraTest {
     @Test
     public void testPreflightFileMissingCustomProps() throws Exception {
         final Path file = new Path(new DefaultHomeFinderService(session).find(), new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file));
-        file.setAttributes(file.attributes().withAcl(Acl.EMPTY));
+        file.setAttributes(file.attributes().setAcl(Acl.EMPTY));
         new CteraReadFeature(session).preflight(file);
     }
 
     @Test
     public void testPreflightFileAccessDeniedCustomProps() throws Exception {
         final Path file = new Path(new DefaultHomeFinderService(session).find(), new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file));
-        file.setAttributes(file.attributes().withAcl(new Acl(new Acl.CanonicalUser(), WRITEPERMISSION)));
+        file.setAttributes(file.attributes().setAcl(new Acl(new Acl.CanonicalUser(), WRITEPERMISSION)));
         assertThrows(AccessDeniedException.class, () -> new CteraReadFeature(session).preflight(file));
     }
 
     @Test
     public void testPreflightFileAccessGrantedCustomProps() throws Exception {
         final Path file = new Path(new DefaultHomeFinderService(session).find(), new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file));
-        file.setAttributes(file.attributes().withAcl(new Acl(new Acl.CanonicalUser(), READPERMISSION)));
+        file.setAttributes(file.attributes().setAcl(new Acl(new Acl.CanonicalUser(), READPERMISSION)));
         new CteraReadFeature(session).preflight(file);
         // assert no fail
     }

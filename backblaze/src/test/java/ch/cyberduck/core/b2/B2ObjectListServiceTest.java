@@ -143,7 +143,7 @@ public class B2ObjectListServiceTest extends AbstractB2Test {
         final Path bucket = new B2DirectoryFeature(session, fileid).mkdir(
                 new Path(String.format("test-%s", new AsciiRandomStringService().random()), EnumSet.of(Path.Type.directory, Path.Type.volume)), new TransferStatus());
         final Path file = new Path(bucket, new AsciiRandomStringService().random(), EnumSet.of(Path.Type.file));
-        final TransferStatus status = new TransferStatus().withLength(0L);
+        final TransferStatus status = new TransferStatus().setLength(0L);
         status.setChecksum(Checksum.parse("da39a3ee5e6b4b0d3255bfef95601890afd80709"));
         final HttpResponseOutputStream<BaseB2Response> out = new B2WriteFeature(session, fileid).write(file, status, new DisabledConnectionCallback());
         IOUtils.write(new byte[0], out);
@@ -216,7 +216,7 @@ public class B2ObjectListServiceTest extends AbstractB2Test {
             assertEquals(Long.valueOf(1L), list.find(path -> path.attributes().isDuplicate()).attributes().getRevision());
         }
         // Add hide marker
-        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(file.withAttributes(new PathAttributes(file.attributes()).withVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(file.withAttributes(new PathAttributes(file.attributes()).setVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
         {
             final AttributedList<Path> list = new B2ObjectListService(session, fileid).list(bucket, new DisabledListProgressListener());
             assertEquals(3, list.size());
@@ -336,14 +336,14 @@ public class B2ObjectListServiceTest extends AbstractB2Test {
         assertSame(folder1, list.find(new SimplePathPredicate(file1)).getParent());
         assertSame(folder1, list.find(new SimplePathPredicate(folder2)).getParent());
         // Nullify version to add delete marker
-        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(new Path(file2).withAttributes(new PathAttributes(file2.attributes()).withVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(new Path(file2).withAttributes(new PathAttributes(file2.attributes()).setVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
         assertTrue(new B2ObjectListService(session, fileid, 1, VersioningConfiguration.empty()).list(folder2, new DisabledListProgressListener()).isEmpty());
         assertFalse(new B2ObjectListService(session, fileid).list(folder2, new DisabledListProgressListener()).isEmpty());
         new B2DeleteFeature(session, fileid).delete(Collections.singletonList(folder2), new DisabledLoginCallback(), new Delete.DisabledCallback());
         assertTrue(new B2ObjectListService(session, fileid).list(folder2, new DisabledListProgressListener()).contains(file2));
         assertThrows(NotfoundException.class, () -> new B2ObjectListService(session, fileid, 1, VersioningConfiguration.empty()).list(folder2, new DisabledListProgressListener()));
         // Nullify version to add delete marker
-        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(new Path(file1).withAttributes(new PathAttributes(file1.attributes()).withVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(new Path(file1).withAttributes(new PathAttributes(file1.attributes()).setVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
         assertTrue(new B2ObjectListService(session, fileid, 1, VersioningConfiguration.empty()).list(folder1, new DisabledListProgressListener()).isEmpty());
         assertTrue(new B2ObjectListService(session, fileid).list(folder1, new DisabledListProgressListener()).contains(folder2));
         new B2DeleteFeature(session, fileid).delete(Collections.singletonList(folder1), new DisabledLoginCallback(), new Delete.DisabledCallback());
@@ -373,7 +373,7 @@ public class B2ObjectListServiceTest extends AbstractB2Test {
             assertFalse(foundFolder1.attributes().isDuplicate());
         }
         // Nullify version to add delete marker
-        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(new Path(file1).withAttributes(new PathAttributes(file1.attributes()).withVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(new Path(file1).withAttributes(new PathAttributes(file1.attributes()).setVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
         assertTrue(new B2ObjectListService(session, fileid, 1, VersioningConfiguration.empty()).list(bucket, new DisabledListProgressListener()).isEmpty());
         {
             final AttributedList<Path> list = new B2ObjectListService(session, fileid).list(bucket, new DisabledListProgressListener());
@@ -410,7 +410,7 @@ public class B2ObjectListServiceTest extends AbstractB2Test {
             assertFalse(foundFolder2.attributes().isDuplicate());
         }
         // Nullify version to add delete marker
-        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(file.withAttributes(new PathAttributes(file.attributes()).withVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new B2DeleteFeature(session, fileid).delete(Collections.singletonList(file.withAttributes(new PathAttributes(file.attributes()).setVersionId(null))), new DisabledLoginCallback(), new Delete.DisabledCallback());
         assertTrue(new DefaultFindFeature(session).find(folder1, new DisabledListProgressListener()));
         assertTrue(new B2ObjectListService(session, fileid).list(folder1, new DisabledListProgressListener()).contains(folder2));
         assertTrue(new DefaultFindFeature(session).find(folder2, new DisabledListProgressListener()));

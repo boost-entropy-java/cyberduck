@@ -58,7 +58,7 @@ public class EueListServiceTest extends AbstractEueSessionTest {
             assertEquals(bucket.attributes(), new EueAttributesFinderFeature(session, fileid).find(bucket, new DisabledListProgressListener()));
         }
         assertNotNull(list.find(f -> f.attributes().getFileId().equals(EueResourceIdProvider.TRASH)));
-        assertTrue(list.contains(new Path("Gelöschte Dateien", EnumSet.of(directory)).withAttributes(new PathAttributes().withFileId("TRASH"))));
+        assertTrue(list.contains(new Path("Gelöschte Dateien", EnumSet.of(directory)).withAttributes(new PathAttributes().setFileId("TRASH"))));
         assertEquals(folder.attributes().getFileId(), list.find(new SimplePathPredicate(folder)).attributes().getFileId());
         assertSame(root, list.find(new SimplePathPredicate(folder)).getParent());
         new EueDeleteFeature(session, fileid).delete(Collections.singletonList(folder), new DisabledLoginCallback(), new Delete.DisabledCallback());
@@ -135,7 +135,7 @@ public class EueListServiceTest extends AbstractEueSessionTest {
         assertTrue(new EueListService(session, fileid).list(folder, new DisabledListProgressListener()).isEmpty());
         final String filename = String.format("%s%s", new AlphanumericRandomStringService().random(), new NFDNormalizer().normalize("ä"));
         final Path file = new EueTouchFeature(session, fileid)
-                .touch(new Path(folder, filename, EnumSet.of(Path.Type.file)), new TransferStatus().withLength(0L));
+                .touch(new Path(folder, filename, EnumSet.of(Path.Type.file)), new TransferStatus().setLength(0L));
         final AttributedList<Path> list = new EueListService(session, fileid).list(folder, new DisabledListProgressListener());
         assertFalse(list.isEmpty());
         assertNotNull(list.find(new DefaultPathPredicate(file)));

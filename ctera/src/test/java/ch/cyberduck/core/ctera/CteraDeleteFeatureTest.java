@@ -49,7 +49,7 @@ public class CteraDeleteFeatureTest extends AbstractCteraTest {
             // Not supported
         }
         assertTrue(new DAVFindFeature(session).find(test));
-        new CteraDeleteFeature(session).delete(Collections.singletonMap(test, new TransferStatus().withLockId(lock)), new DisabledLoginCallback(), new Delete.DisabledCallback());
+        new CteraDeleteFeature(session).delete(Collections.singletonMap(test, new TransferStatus().setLockId(lock)), new DisabledLoginCallback(), new Delete.DisabledCallback());
         assertFalse(new DAVFindFeature(session).find(test));
     }
 
@@ -72,21 +72,21 @@ public class CteraDeleteFeatureTest extends AbstractCteraTest {
     @Test
     public void testPreflightFileMissingCustomProps() throws Exception {
         final Path file = new Path(new DefaultHomeFinderService(session).find(), new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file));
-        file.setAttributes(file.attributes().withAcl(Acl.EMPTY));
+        file.setAttributes(file.attributes().setAcl(Acl.EMPTY));
         new CteraDeleteFeature(session).preflight(file);
     }
 
     @Test
     public void testPreflightFileAccessDeniedCustomProps() throws Exception {
         final Path file = new Path(new DefaultHomeFinderService(session).find(), new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file));
-        file.setAttributes(file.attributes().withAcl(new Acl(new Acl.CanonicalUser(), READPERMISSION)));
+        file.setAttributes(file.attributes().setAcl(new Acl(new Acl.CanonicalUser(), READPERMISSION)));
         assertThrows(AccessDeniedException.class, () -> new CteraDeleteFeature(session).preflight(file));
     }
 
     @Test
     public void testPreflightFileAccessGrantedCustomProps() throws Exception {
         final Path file = new Path(new DefaultHomeFinderService(session).find(), new AlphanumericRandomStringService().random(), EnumSet.of(Path.Type.file));
-        file.setAttributes(file.attributes().withAcl(new Acl(new Acl.CanonicalUser(), DELETEPERMISSION)));
+        file.setAttributes(file.attributes().setAcl(new Acl(new Acl.CanonicalUser(), DELETEPERMISSION)));
         new CteraDeleteFeature(session).preflight(file);
         // assert no fail
     }
