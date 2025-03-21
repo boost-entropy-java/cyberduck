@@ -111,16 +111,19 @@ public class SMBSession extends ch.cyberduck.core.Session<Connection> {
         }
     }
 
+    private static final GenericObjectPoolConfig<DiskShareWrapper> config = new GenericObjectPoolConfig<>();
+
+    static {
+        config.setJmxEnabled(false);
+        config.setBlockWhenExhausted(true);
+        config.setMaxIdle(1);
+        config.setMaxTotal(Integer.MAX_VALUE);
+        config.setTestOnBorrow(true);
+    }
+
     private final class DiskSharePool extends GenericObjectPool<DiskShareWrapper> {
         public DiskSharePool(final String shareName) {
-            super(new DiskSharePoolObjectFactory(shareName));
-            final GenericObjectPoolConfig<DiskShareWrapper> config = new GenericObjectPoolConfig<>();
-            config.setJmxEnabled(false);
-            config.setBlockWhenExhausted(true);
-            config.setMaxIdle(1);
-            config.setMaxTotal(Integer.MAX_VALUE);
-            config.setTestOnBorrow(true);
-            this.setConfig(config);
+            super(new DiskSharePoolObjectFactory(shareName), config);
             this.setSwallowedExceptionListener(new SwallowedExceptionListener() {
                 @Override
                 public void onSwallowException(final Exception e) {
@@ -287,10 +290,13 @@ public class SMBSession extends ch.cyberduck.core.Session<Connection> {
     public DiskShareWrapper openShare(final Path file) throws BackgroundException {
         try {
             final String shareName = containerService.getContainer(file).getName();
-            final GenericObjectPool<DiskShareWrapper> pool;
+            GenericObjectPool<DiskShareWrapper> pool;
             lock.lock();
             try {
-                pool = pools.getOrDefault(shareName, new DiskSharePool(shareName));
+                pool = pools.get(shareName);
+                if(null == pool) {
+                    pool = new DiskSharePool(shareName);
+                }
                 if(pool.getNumIdle() == 0) {
                     log.warn("No idle share for {} with {} active", shareName, pool.getNumActive());
                 }
