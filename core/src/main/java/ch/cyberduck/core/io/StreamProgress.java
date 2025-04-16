@@ -20,19 +20,19 @@ package ch.cyberduck.core.io;
 import ch.cyberduck.core.exception.BackgroundException;
 
 public interface StreamProgress {
-    void setComplete();
+    StreamProgress setComplete();
 
-    void setFailure(final BackgroundException failure);
+    StreamProgress setFailure(BackgroundException failure);
 
     StreamProgress noop = new StreamProgress() {
         @Override
-        public void setComplete() {
-            //
+        public StreamProgress setComplete() {
+            return this;
         }
 
         @Override
-        public void setFailure(final BackgroundException failure) {
-            //
+        public StreamProgress setFailure(final BackgroundException failure) {
+            return this;
         }
     };
 }
