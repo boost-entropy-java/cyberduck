@@ -32,7 +32,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.onedrive.client.OneDriveAPIException;
 import org.nuxeo.onedrive.client.types.DriveItem;
 import org.nuxeo.onedrive.client.types.DriveItemVersion;
+import org.nuxeo.onedrive.client.types.File;
 import org.nuxeo.onedrive.client.types.FileSystemInfo;
+import org.nuxeo.onedrive.client.types.Hashes;
 import org.nuxeo.onedrive.client.types.Publication;
 
 import java.io.IOException;
@@ -89,7 +91,13 @@ public class GraphAttributesFinderFeature implements AttributesFinder, Attribute
     public PathAttributes toAttributes(final DriveItem.Metadata metadata) {
         final PathAttributes attributes = new PathAttributes();
         attributes.setETag(metadata.getETag());
-        attributes.setVersionId(metadata.getcTag());
+        final File file = metadata.getFile();
+        if(file != null) {
+            final Hashes hashes = file.getHashes();
+            if(hashes != null) {
+                attributes.setVersionId(hashes.getQuickXorHash());
+            }
+        }
         Optional<DescriptiveUrl> webUrl = getWebUrl(metadata);
         if(metadata.isPackage()) {
             webUrl.ifPresent(url -> attributes.setSize(UrlFileWriterFactory.get().write(url).getBytes(Charset.defaultCharset()).length));
@@ -97,7 +105,7 @@ public class GraphAttributesFinderFeature implements AttributesFinder, Attribute
         else if(null != metadata.getSize()) {
             attributes.setSize(metadata.getSize());
         }
-        setId(attributes, session.getFileId(metadata));
+        attributes.setFileId(session.getFileId(metadata));
         webUrl.ifPresent(attributes::setLink);
         final FileSystemInfo info = metadata.getFacet(FileSystemInfo.class);
         if(null != info) {
@@ -140,9 +148,5 @@ public class GraphAttributesFinderFeature implements AttributesFinder, Attribute
         attributes.setSize(version.getSize());
         attributes.setModificationDate(version.getLastModifiedDateTime().toInstant().toEpochMilli());
         return attributes;
-    }
-
-    private void setId(final PathAttributes attributes, final String id) {
-        attributes.setFileId(id);
     }
 }
