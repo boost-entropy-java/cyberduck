@@ -56,6 +56,7 @@ public class DefaultVaultRegistry extends CopyOnWriteArraySet<Vault> implements 
 
     @Override
     public boolean add(final Vault vault) {
+        log.debug("Add vault {} to registry", vault);
         return super.add(vault);
     }
 
@@ -74,7 +75,7 @@ public class DefaultVaultRegistry extends CopyOnWriteArraySet<Vault> implements 
     @Override
     public boolean contains(final Path directory, final boolean recursive) {
         for(Vault vault : this) {
-            if(new SimplePathPredicate(directory).test(vault.getHome())) {
+            if(new SimplePathPredicate(vault.getHome()).test(directory)) {
                 return true;
             }
             if(recursive) {
