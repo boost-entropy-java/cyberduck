@@ -59,6 +59,8 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         assertFalse(new S3FindFeature(session, acl).find(test));
         assertTrue(new S3FindFeature(session, acl).find(renamed));
         final PathAttributes targetAttr = new S3AttributesFinderFeature(session, acl).find(renamed);
+        assertEquals(renamed.attributes().getETag(), targetAttr.getETag());
+        assertEquals(renamed.attributes().getChecksum(), targetAttr.getChecksum());
         assertEquals(Comparison.equal, session.getHost().getProtocol().getFeature(ComparisonService.class).compare(Path.Type.file, test.attributes(), targetAttr));
         assertEquals(Comparison.equal, session.getHost().getProtocol().getFeature(ComparisonService.class).compare(Path.Type.file, renamed.attributes(), targetAttr));
         new S3DefaultDeleteFeature(session, acl).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
@@ -111,8 +113,8 @@ public class S3MoveFeatureTest extends AbstractS3Test {
         assertTrue(new S3FindFeature(session, acl).find(test));
         // Ensure that the latest version of the source file is a delete marker
         test = new S3ListService(session, acl).list(container, new DisabledListProgressListener()).find(new SimplePathPredicate(test));
-        assertTrue(test.attributes().isDuplicate());
-        assertTrue(new S3AttributesFinderFeature(session, acl).find(test).isDuplicate());
+        assertTrue(test.attributes().isTrashed());
+        assertTrue(new S3AttributesFinderFeature(session, acl).find(test).isTrashed());
         assertTrue(new S3FindFeature(session, acl).find(renamed));
         assertEquals(content.length, new S3AttributesFinderFeature(session, acl).find(renamed).getSize());
         new S3DefaultDeleteFeature(session, acl).delete(Collections.singletonList(renamed), new DisabledLoginCallback(), new Delete.DisabledCallback());
