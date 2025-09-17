@@ -16,12 +16,11 @@ package ch.cyberduck.binding;
  */
 
 import ch.cyberduck.binding.application.NSAlert;
-import ch.cyberduck.binding.application.NSWindow;
 
 public class SystemAlertController extends AlertController {
 
     @Outlet
-    protected NSAlert alert;
+    private NSAlert alert;
 
     public SystemAlertController(final NSAlert alert) {
         this.alert = alert;
@@ -33,8 +32,7 @@ public class SystemAlertController extends AlertController {
     }
 
     @Override
-    public void setWindow(final NSWindow window) {
-        super.setWindow(window);
-        window.setReleasedWhenClosed(false);
+    public NSAlert alert() {
+        return alert;
     }
 }
