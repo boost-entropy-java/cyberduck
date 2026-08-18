@@ -84,7 +84,7 @@
         <argLine />
         <jna-version>5.14.0</jna-version>
         <jersey-version>2.38</jersey-version>
-        <jackson-version>2.22.1</jackson-version>
+        <jackson-version>2.22.2</jackson-version>
         <jackson-annotations-version>2.22</jackson-annotations-version>
         <slf4j-version>2.0.0</slf4j-version>
         <log4j-version>2.26.1</log4j-version>
@@ -120,7 +120,7 @@
             <dependency>
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
-                <version>1.18.11</version>
+                <version>1.18.12</version>
             </dependency>
             <dependency>
                 <groupId>cglib</groupId>
@@ -411,7 +411,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>33.6.0-jre</version>
+                <version>33.7.0-jre</version>
             </dependency>
             <dependency>
                 <groupId>com.joyent.util</groupId>
