@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+# Queue instead of running in parallel
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 jobs:
   deploy:
     strategy:
@@ -41,12 +45,18 @@ jobs:
       contents: read
     runs-on: [ linux, x64 ]
     steps:
+      - name: Clean
+        run: rm -rf release
+        shell: bash
+
       - name: Download App
         uses: actions/download-artifact@v8
         with:
           pattern: Cyberduck-*
           path: release
           merge-multiple: true
+          # Keep the app ZIP as is instead of extracting Cyberduck.app
+          skip-decompress: true
 
       - name: Credentials
         id: identity
